@@ -14,7 +14,8 @@
     "tunnel": "node scripts/tunnel.mjs",
     "dev:public": "node scripts/dev-public.mjs",
     "setup:turso": "node scripts/setup-turso.mjs",
-    "init-db": "node scripts/init-db.mjs"
+    "init-db": "node scripts/init-db.mjs",
+    "handover:production": "node scripts/handover-production.mjs"
   },
   "dependencies": {
     "@fontsource/bai-jamjuree": "^5.3.0",

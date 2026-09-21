@@ -12,16 +12,56 @@ function formatTime(iso: string) {
 }
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString([], { month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDuration(signedInAt: string, signedOutAt: string | null) {
+  if (!signedOutAt) return "Still on site";
+  const mins = Math.round((new Date(signedOutAt).getTime() - new Date(signedInAt).getTime()) / 60000);
+  if (mins < 60) return `${mins} min`;
+  const hours = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem ? `${hours}h ${rem}m` : `${hours}h`;
+}
+
+type DatePreset = "today" | "yesterday" | "week" | "month" | "all";
+
+function presetRange(preset: DatePreset): { from: string; to: string } {
+  const today = localDateKey();
+  if (preset === "today") return { from: today, to: today };
+  if (preset === "yesterday") {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const key = localDateKey(d);
+    return { from: key, to: key };
+  }
+  if (preset === "week") {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    return { from: localDateKey(d), to: today };
+  }
+  if (preset === "month") {
+    const d = new Date();
+    d.setDate(d.getDate() - 29);
+    return { from: localDateKey(d), to: today };
+  }
+  return { from: "2020-01-01", to: today };
 }
 
 export function DashboardView({ campus }: { campus: string }) {
   const [dateFrom, setDateFrom] = useState(localDateKey());
   const [dateTo, setDateTo] = useState(localDateKey());
+  const [activePreset, setActivePreset] = useState<DatePreset>("today");
   const [status, setStatus] = useState<"all" | "on-site" | "left">("all");
   const [source, setSource] = useState<"all" | "desk" | "self">("all");
   const [allVisits, setAllVisits] = useState<VisitRecord[]>([]);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -35,7 +75,7 @@ export function DashboardView({ campus }: { campus: string }) {
     return rows;
   }, [allVisits, status, source]);
 
-  const stats = useMemo(
+  const rangeStats = useMemo(
     () => ({
       total: allVisits.length,
       onSite: allVisits.filter((visit) => !visit.signedOutAt).length,
@@ -44,6 +84,19 @@ export function DashboardView({ campus }: { campus: string }) {
     }),
     [allVisits],
   );
+
+  const filteredStats = useMemo(
+    () => ({
+      total: visits.length,
+      onSite: visits.filter((visit) => !visit.signedOutAt).length,
+      self: visits.filter((visit) => visit.source === "self").length,
+      desk: visits.filter((visit) => visit.source === "desk").length,
+    }),
+    [visits],
+  );
+
+  const hasExtraFilters = status !== "all" || source !== "all" || search.trim().length > 0;
+  const stats = hasExtraFilters ? filteredStats : rangeStats;
 
   async function load() {
     if (dateError) return;
@@ -66,11 +119,31 @@ export function DashboardView({ campus }: { campus: string }) {
   }
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setSearch(searchInput), 300);
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
     void load();
-    const timer = setInterval(() => void load(), 5000);
+    const timer = setInterval(() => void load(), 8000);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFrom, dateTo, campus, search]);
+
+  function applyPreset(preset: DatePreset) {
+    const range = presetRange(preset);
+    setActivePreset(preset);
+    setDateFrom(range.from);
+    setDateTo(range.to);
+  }
+
+  function clearFilters() {
+    setStatus("all");
+    setSource("all");
+    setSearchInput("");
+    setSearch("");
+    applyPreset("today");
+  }
 
   function exportCsv() {
     if (visits.length === 0) return;
@@ -84,12 +157,44 @@ export function DashboardView({ campus }: { campus: string }) {
     URL.revokeObjectURL(url);
   }
 
+  const filterSummary = [
+    `${dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`}`,
+    status === "all" ? null : status === "on-site" ? "On site" : "Signed out",
+    source === "all" ? null : source === "desk" ? "Front desk" : "QR self",
+    search.trim() ? `Search: “${search.trim()}”` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <>
+      <div className="history-presets">
+        {(
+          [
+            ["today", "Today"],
+            ["yesterday", "Yesterday"],
+            ["week", "Last 7 days"],
+            ["month", "Last 30 days"],
+            ["all", "All time"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={`preset-btn${activePreset === key ? " active" : ""}`}
+            onClick={() => applyPreset(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="stat-row">
         <div className="stat-card stat-card--blue">
           <div className="num">{stats.total}</div>
-          <div className="label">Total visits · {campus}</div>
+          <div className="label">
+            {hasExtraFilters ? "Matching filters" : `Total visits · ${campus}`}
+          </div>
         </div>
         <div className="stat-card stat-card--gold">
           <div className="num">{stats.onSite}</div>
@@ -105,6 +210,12 @@ export function DashboardView({ campus }: { campus: string }) {
         </div>
       </div>
 
+      {hasExtraFilters && rangeStats.total !== filteredStats.total ? (
+        <p className="history-range-note">
+          {filteredStats.total} of {rangeStats.total} visits in this date range match your filters.
+        </p>
+      ) : null}
+
       <div className="dash-controls card dash-filters">
         <div className="filter-group">
           <label htmlFor="dateFrom">From</label>
@@ -112,7 +223,10 @@ export function DashboardView({ campus }: { campus: string }) {
             id="dateFrom"
             type="date"
             value={dateFrom}
-            onChange={(event) => setDateFrom(event.target.value)}
+            onChange={(event) => {
+              setActivePreset("all");
+              setDateFrom(event.target.value);
+            }}
           />
         </div>
         <div className="filter-group">
@@ -121,7 +235,10 @@ export function DashboardView({ campus }: { campus: string }) {
             id="dateTo"
             type="date"
             value={dateTo}
-            onChange={(event) => setDateTo(event.target.value)}
+            onChange={(event) => {
+              setActivePreset("all");
+              setDateTo(event.target.value);
+            }}
           />
         </div>
         <div className="filter-group">
@@ -132,16 +249,6 @@ export function DashboardView({ campus }: { campus: string }) {
             <option value="left">Signed out</option>
           </select>
         </div>
-        <div className="filter-group filter-group--wide">
-          <label htmlFor="search">Search</label>
-          <input
-            id="search"
-            type="search"
-            placeholder="Name, phone, or host"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
         <div className="filter-group">
           <label htmlFor="source">Check-in type</label>
           <select id="source" value={source} onChange={(event) => setSource(event.target.value as typeof source)}>
@@ -150,14 +257,33 @@ export function DashboardView({ campus }: { campus: string }) {
             <option value="self">QR self</option>
           </select>
         </div>
-        <button type="button" className="export-btn" onClick={exportCsv} disabled={visits.length === 0}>
-          Export CSV
+        <div className="filter-group filter-group--wide">
+          <label htmlFor="search">Search</label>
+          <input
+            id="search"
+            type="search"
+            placeholder="Name, phone, or host"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+          />
+        </div>
+        <button type="button" className="ghost-btn" onClick={clearFilters}>
+          Clear filters
         </button>
+        <button type="button" className="export-btn" onClick={exportCsv} disabled={visits.length === 0}>
+          Export {visits.length} row{visits.length === 1 ? "" : "s"}
+        </button>
+      </div>
+
+      <div className="history-summary-bar">
+        <span>
+          {loading ? "Loading…" : `${visits.length} visitor${visits.length === 1 ? "" : "s"} shown`}
+        </span>
+        <span className="history-filter-tags">{filterSummary}</span>
       </div>
 
       {dateError ? <p className="form-msg err">{dateError}</p> : null}
       {error ? <p className="form-msg err">{error}</p> : null}
-      {loading && !error && !dateError ? <p className="form-msg">Loading visits…</p> : null}
 
       <div className="dash-table-wrap">
         <table className="dash-table">
@@ -167,19 +293,28 @@ export function DashboardView({ campus }: { campus: string }) {
               <th>Purpose</th>
               <th>Host</th>
               <th>Source</th>
-              <th>Date</th>
+              <th>Visit date</th>
               <th>Signed in</th>
               <th>Signed out</th>
+              <th>Duration</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {!loading && visits.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan={8} style={{ textAlign: "center", color: "var(--ink-muted)", padding: 30 }}>
+                <td colSpan={9} className="history-empty">
+                  Loading visit history…
+                </td>
+              </tr>
+            ) : visits.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="history-empty">
                   {dateError
                     ? "Fix the date range to see visits."
-                    : "No visits recorded for this campus and date range."}
+                    : hasExtraFilters
+                      ? "No visits match these filters. Try clearing filters or widening the date range."
+                      : "No visits recorded for this campus and date range."}
                 </td>
               </tr>
             ) : (
@@ -196,10 +331,8 @@ export function DashboardView({ campus }: { campus: string }) {
                         )}
                       </div>
                       <div>
-                        <div>{visit.name}</div>
-                        <div style={{ color: "var(--ink-muted)", fontSize: 12 }}>
-                          {formatPhone(visit.phone)}
-                        </div>
+                        <div className="history-name">{visit.name}</div>
+                        <div className="history-phone">{formatPhone(visit.phone)}</div>
                       </div>
                     </div>
                   </td>
@@ -209,6 +342,7 @@ export function DashboardView({ campus }: { campus: string }) {
                   <td>{formatDate(visit.signedInAt)}</td>
                   <td>{formatTime(visit.signedInAt)}</td>
                   <td>{visit.signedOutAt ? formatTime(visit.signedOutAt) : "—"}</td>
+                  <td className="duration-cell">{formatDuration(visit.signedInAt, visit.signedOutAt)}</td>
                   <td>
                     <span className={`status-chip ${visit.signedOutAt ? "left" : "on-site"}`}>
                       {visit.signedOutAt ? "Left" : "On site"}

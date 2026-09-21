@@ -131,6 +131,14 @@ async function main() {
   const history = await req("/api/visits?campus=Usa%20River&dateFrom=2020-01-01&dateTo=2099-12-31");
   assert(history.status === 200, "History query failed");
 
+  const dbHealth = await req("/api/health");
+  assert(dbHealth.status === 200 && dbHealth.body.ok, "Database health check failed");
+
+  const historyFilter = await req(
+    "/api/visits?campus=Usa%20River&dateFrom=2020-01-01&dateTo=2099-12-31&search=Desk",
+  );
+  assert(historyFilter.status === 200, "History search filter failed");
+
   const pages = [
     "/",
     "/overview",

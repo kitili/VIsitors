@@ -11,9 +11,14 @@ export class VisitCsvExporter {
       "Source",
       "Signed in",
       "Signed out",
+      "Duration",
+      "Status",
     ];
     const lines = [headers.join(",")];
     for (const row of rows) {
+      const duration = row.signedOutAt
+        ? `${Math.round((new Date(row.signedOutAt).getTime() - new Date(row.signedInAt).getTime()) / 60000)} min`
+        : "On site";
       const values = [
         row.name,
         row.phone,
@@ -23,6 +28,8 @@ export class VisitCsvExporter {
         row.source,
         row.signedInAt,
         row.signedOutAt ?? "",
+        duration,
+        row.signedOutAt ? "Left" : "On site",
       ];
       lines.push(values.map((value) => this.cell(value)).join(","));
     }
