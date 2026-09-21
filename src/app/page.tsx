@@ -23,24 +23,6 @@ export default function HomePage() {
           </Link>
         ))}
       </div>
-      <div className="hub-quick-links">
-        <Link href="/overview" className="hub-quick-link card">
-          Network overview
-        </Link>
-        <Link href="/check-in" className="hub-quick-link card">
-          Visitor check-in
-        </Link>
-        <Link href="/check-out" className="hub-quick-link card">
-          Visitor check-out
-        </Link>
-        <Link href="/qr" className="hub-quick-link card">
-          QR poster
-        </Link>
-      </div>
-      <p className="footnote hub-footnote">
-        Leadership can monitor all campuses from the network overview. Visitors can self check-in
-        via QR or the check-in form, and sign out when leaving.
-      </p>
     </div>
   );
 }

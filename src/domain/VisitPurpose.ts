@@ -1,12 +1,12 @@
 import { ValidationError } from "./errors";
 
 export const VISIT_PURPOSES = [
-  "Parent meeting",
-  "Prospective family tour",
-  "Delivery / vendor",
-  "Maintenance / contractor",
-  "Interview",
-  "Other",
+  "Official Office visit",
+  "Student admission inquiry",
+  "Picking up student",
+  "Dropping off Student",
+  "Student visiting day",
+  "Event attendance",
 ] as const;
 
 export type VisitPurposeName = (typeof VISIT_PURPOSES)[number];

@@ -116,10 +116,10 @@ export class LibsqlVisitRepository implements VisitRepository {
   async signOutAll(campus: string, date: string): Promise<number> {
     const now = new Date().toISOString();
     const result = await (await this.client()).execute({
-      sql: "UPDATE visits SET signed_out_at = ? WHERE campus = ? AND date = ? AND signed_out_at IS NULL",
+      sql: "UPDATE visits SET signed_out_at = ? WHERE campus = ? AND date = ? AND signed_out_at IS NULL RETURNING id",
       args: [now, campus, date],
     });
-    return result.rowsAffected;
+    return result.rows.length;
   }
 
   async save(visit: Visit): Promise<void> {

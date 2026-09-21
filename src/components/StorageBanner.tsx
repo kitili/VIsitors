@@ -41,7 +41,7 @@ export function StorageBanner() {
         <>
           {" "}
           <a href={setupUrl} target="_blank" rel="noopener noreferrer">
-            Connect Turso on Vercel
+            Connect a database on Vercel
           </a>
         </>
       ) : null}

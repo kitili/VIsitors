@@ -5,6 +5,11 @@ data/visits.json
 data/visits.db
 data/visits.db-shm
 data/visits.db-wal
+auth
+auth-wal
+db
+db-wal
+tsconfig.tsbuildinfo
 data/photos/
 data/public-url.json
 .env.local
@@ -13,3 +18,4 @@ data/public-url.json
 *.log
 .DS_Store
 .vercel
+.env*

@@ -88,7 +88,7 @@ async function main() {
     body: JSON.stringify({
       name: "Test Visitor",
       phone: "07AB400000",
-      purpose: "Interview",
+      purpose: "Official Office visit",
       host: "Front Office",
       campus: "Usa River",
       source: "desk",
@@ -102,7 +102,7 @@ async function main() {
     body: JSON.stringify({
       name: "Desk Visitor",
       phone: "0754111222",
-      purpose: "Parent meeting",
+      purpose: "Picking up student",
       host: "Front Office",
       campus: "Usa River",
       source: "desk",
@@ -136,7 +136,7 @@ async function main() {
     body: JSON.stringify({
       name: "Amina Joseph",
       phone: "0754000000",
-      purpose: "Prospective family tour",
+      purpose: "Student admission inquiry",
       host: "Admissions",
       campus: "Kijenge",
       source: "self",
@@ -187,7 +187,7 @@ async function main() {
     body: JSON.stringify({
       name: "Blocked Person",
       phone: "0754999999",
-      purpose: "Interview",
+      purpose: "Official Office visit",
       host: "Front Office",
       campus: "Usa River",
       source: "desk",
@@ -233,7 +233,7 @@ async function main() {
     body: JSON.stringify({
       name: "Bulk Sign Out Visitor",
       phone: "0754222333",
-      purpose: "Delivery / vendor",
+      purpose: "Event attendance",
       host: "Front Office",
       campus: "Usa River",
       source: "desk",

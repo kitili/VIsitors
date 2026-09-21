@@ -18,7 +18,7 @@ export function jsonError(error: unknown) {
   const message = error instanceof Error ? error.message : "Something went wrong.";
   const hint =
     process.env.VERCEL && !isPersistentDatabase()
-      ? " For persistent storage on Vercel, add TURSO_DATABASE_URL (see README)."
+      ? " For persistent storage on Vercel, connect Neon or Turso (see README)."
       : "";
   return NextResponse.json({ error: message + hint }, { status: 500 });
 }

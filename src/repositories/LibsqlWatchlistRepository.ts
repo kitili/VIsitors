@@ -34,11 +34,12 @@ export class LibsqlWatchlistRepository implements WatchlistRepository {
     }
     const createdAt = new Date().toISOString();
     const result = await (await this.client()).execute({
-      sql: "INSERT INTO watchlist (name, phone, reason, created_at) VALUES (?, ?, ?, ?)",
+      sql: "INSERT INTO watchlist (name, phone, reason, created_at) VALUES (?, ?, ?, ?) RETURNING id",
       args: [name, phone, input.reason.trim(), createdAt],
     });
+    const row = result.rows[0] as { id?: number | string } | undefined;
     return {
-      id: Number(result.lastInsertRowid),
+      id: Number(row?.id ?? 0),
       name,
       phone,
       reason: input.reason.trim(),

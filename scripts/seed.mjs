@@ -5,7 +5,7 @@ const visitors = [
   {
     name: "Amina Joseph",
     phone: "0754123456",
-    purpose: "Parent meeting",
+    purpose: "Official Office visit",
     host: "Erick Anthony",
     campus: "Usa River",
     source: "self",
@@ -13,7 +13,7 @@ const visitors = [
   {
     name: "James Mwangi",
     phone: "0754987654",
-    purpose: "Prospective family tour",
+    purpose: "Student admission inquiry",
     host: "Admissions Office",
     campus: "Arusha Modern",
     source: "self",
@@ -21,7 +21,7 @@ const visitors = [
   {
     name: "Grace Kimaro",
     phone: "0754111222",
-    purpose: "Delivery / vendor",
+    purpose: "Picking up student",
     host: "Front Office",
     campus: "Kijenge",
     source: "desk",
@@ -29,7 +29,7 @@ const visitors = [
   {
     name: "Peter Ole Sanare",
     phone: "0754333444",
-    purpose: "Interview",
+    purpose: "Dropping off Student",
     host: "HR Office",
     campus: "Ilboru",
     source: "desk",
@@ -37,7 +37,7 @@ const visitors = [
   {
     name: "Fatuma Hassan",
     phone: "0754555666",
-    purpose: "Maintenance / contractor",
+    purpose: "Student visiting day",
     host: "Facilities",
     campus: "Boma",
     source: "self",
@@ -45,7 +45,7 @@ const visitors = [
   {
     name: "David Mrosso",
     phone: "0754777888",
-    purpose: "Parent meeting",
+    purpose: "Event attendance",
     host: "Year 3 Teacher",
     campus: "Usa River",
     source: "desk",
