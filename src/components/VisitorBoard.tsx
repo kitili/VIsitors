@@ -2,6 +2,7 @@
 
 import { VisitRecord } from "@/domain/Visit";
 import { signOutAll, signOutVisit } from "@/lib/visits-client";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 const STALE_HOURS = 4;
 
@@ -34,24 +35,30 @@ export function VisitorBoard({
   onChanged: () => void;
   onToast: (message: string) => void;
 }) {
+  const { t, te, purposeLabel } = useAppPreferences();
+
   async function signOut(id: string) {
     try {
       const visit = await signOutVisit(id);
-      onToast(`Signed out ${visit.name}`);
+      onToast(t("board.signOutToast", { name: visit.name }));
       onChanged();
     } catch (error) {
-      onToast(error instanceof Error ? error.message : "Could not sign out.");
+      onToast(error instanceof Error ? te(error.message) : t("board.signOutError"));
     }
   }
 
   async function signOutEveryone() {
-    if (!window.confirm(`Sign out all ${visits.length} visitors at ${campus}?`)) return;
+    if (!window.confirm(t("board.signOutAllConfirm", { count: visits.length, campus }))) return;
     try {
       const count = await signOutAll(campus);
-      onToast(`Signed out ${count} visitor${count === 1 ? "" : "s"}`);
+      onToast(
+        count === 1
+          ? t("board.signOutAllToast", { count })
+          : t("board.signOutAllToastPlural", { count }),
+      );
       onChanged();
     } catch (error) {
-      onToast(error instanceof Error ? error.message : "Could not sign out all.");
+      onToast(error instanceof Error ? te(error.message) : t("board.signOutAllError"));
     }
   }
 
@@ -60,29 +67,31 @@ export function VisitorBoard({
   return (
     <div className="card">
       <div className="board-head">
-        <h2>On site now</h2>
+        <h2>{t("board.onSite")}</h2>
         <span className="count">
-          {visits.length} {visits.length === 1 ? "visitor" : "visitors"}
+          {visits.length} {visits.length === 1 ? t("board.visitor") : t("board.visitors")}
         </span>
       </div>
 
       {staleCount > 0 ? (
         <div className="stale-banner">
-          {staleCount} visitor{staleCount === 1 ? "" : "s"} on site for over {STALE_HOURS} hours
+          {staleCount === 1
+            ? t("board.stale", { count: staleCount, hours: STALE_HOURS })
+            : t("board.stalePlural", { count: staleCount, hours: STALE_HOURS })}
         </div>
       ) : null}
 
       {visits.length > 0 ? (
         <div className="board-actions no-print">
           <button type="button" className="ghost-btn" onClick={() => void signOutEveryone()}>
-            Sign out all today
+            {t("board.signOutAll")}
           </button>
         </div>
       ) : null}
 
       <div className="visitor-list">
         {visits.length === 0 ? (
-          <div className="empty">No one signed in yet at this campus today.</div>
+          <div className="empty">{t("board.empty")}</div>
         ) : (
           visits.map((visit) => (
             <div
@@ -100,14 +109,14 @@ export function VisitorBoard({
               <div className="visitor-info">
                 <div className="name">{visit.name}</div>
                 <div className="meta">
-                  {visit.purpose} · visiting {visit.host}
-                  {visit.source === "self" ? " · self check-in" : ""}
-                  {isStale(visit.signedInAt) ? " · long stay" : ""}
+                  {purposeLabel(visit.purpose)} · {t("board.visiting")} {visit.host}
+                  {visit.source === "self" ? ` · ${t("board.selfTag")}` : ""}
+                  {isStale(visit.signedInAt) ? ` · ${t("board.longStay")}` : ""}
                 </div>
               </div>
-              <div className="visitor-time">In {formatTime(visit.signedInAt)}</div>
+              <div className="visitor-time">{t("board.inTime", { time: formatTime(visit.signedInAt) })}</div>
               <button type="button" className="signout-btn" onClick={() => signOut(visit.id)}>
-                Sign out
+                {t("board.signOut")}
               </button>
             </div>
           ))

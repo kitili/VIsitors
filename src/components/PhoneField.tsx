@@ -1,6 +1,7 @@
 "use client";
 
 import { PhoneNumber } from "@/domain/PhoneNumber";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 export function PhoneField({
   id,
@@ -13,9 +14,11 @@ export function PhoneField({
   onChange: (digits: string) => void;
   onBlur?: () => void;
 }) {
+  const { t } = useAppPreferences();
+
   return (
     <>
-      <label htmlFor={id}>Phone number</label>
+      <label htmlFor={id}>{t("phone.label")}</label>
       <input
         id={id}
         type="tel"
@@ -38,7 +41,7 @@ export function PhoneField({
         }}
         onBlur={onBlur}
       />
-      <div className="field-hint">Digits only — Tanzanian mobiles are usually 10 digits starting with 0.</div>
+      <div className="field-hint">{t("phone.hint")}</div>
     </>
   );
 }

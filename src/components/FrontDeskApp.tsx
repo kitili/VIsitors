@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { VisitRecord } from "@/domain/Visit";
 import { localDateKey } from "@/lib/date-key";
 import { fetchVisits } from "@/lib/visits-client";
+import { useAppPreferences } from "@/lib/i18n/context";
 import { SignInForm } from "./SignInForm";
 import { SiteHeader } from "./SiteHeader";
 import { VisitorBoard } from "./VisitorBoard";
 
 export function FrontDeskApp({ campus }: { campus: string }) {
+  const { t, te } = useAppPreferences();
   const [visits, setVisits] = useState<VisitRecord[]>([]);
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
@@ -18,7 +20,7 @@ export function FrontDeskApp({ campus }: { campus: string }) {
       setError("");
       setVisits(await fetchVisits({ campus, date: localDateKey(), onSite: true }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not refresh visitor board.");
+      setError(err instanceof Error ? te(err.message) : t("desk.refreshError"));
     }
   }
 
@@ -37,8 +39,8 @@ export function FrontDeskApp({ campus }: { campus: string }) {
     <div className="wrap campus-themed" data-campus={campus}>
       <SiteHeader
         campus={campus}
-        title="Visitor Log"
-        subtitle={`Front desk for ${campus}. Sign visitors in or send them to the QR self check-in.`}
+        title={t("desk.title")}
+        subtitle={t("desk.subtitle", { campus })}
         active="desk"
       />
       <div className="grid">
@@ -46,7 +48,7 @@ export function FrontDeskApp({ campus }: { campus: string }) {
           campus={campus}
           source="desk"
           onSignedIn={(name) => {
-            showToast(`${name} signed in`);
+            showToast(t("desk.signedInToast", { name }));
             void refresh();
           }}
         />
@@ -58,9 +60,7 @@ export function FrontDeskApp({ campus }: { campus: string }) {
         />
       </div>
       {error ? <p className="form-msg err">{error}</p> : null}
-      <p className="footnote">
-        Silverleaf Academy · visitor photos are stored securely · history is available on the dashboard.
-      </p>
+      <p className="footnote">{t("desk.footnote")}</p>
       <div className={`toast${toast ? " show" : ""}`}>{toast}</div>
     </div>
   );

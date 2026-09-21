@@ -5,6 +5,7 @@ import { VISIT_PURPOSES } from "@/domain/VisitPurpose";
 import { VisitRecord } from "@/domain/Visit";
 import { WatchlistEntry } from "@/repositories/WatchlistRepository";
 import { createVisit, lookupVisitor } from "@/lib/visits-client";
+import { useAppPreferences } from "@/lib/i18n/context";
 import { PhoneField } from "./PhoneField";
 import { PhotoCapture } from "./PhotoCapture";
 import { VisitorBadge } from "./VisitorBadge";
@@ -18,6 +19,7 @@ export function SignInForm({
   source: "desk" | "self";
   onSignedIn?: (name: string) => void;
 }) {
+  const { t, te, purposeLabel } = useAppPreferences();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -41,7 +43,7 @@ export function SignInForm({
         if (!name) setName(visit.name);
         if (!host) setHost(visit.host);
         if (!purpose) setPurpose(visit.purpose);
-        setAutofillHint(`Returning visitor — details filled from last visit.`);
+        setAutofillHint(t("signIn.returningHint"));
       }
     } catch {
       setAutofillHint("");
@@ -52,9 +54,7 @@ export function SignInForm({
     event.preventDefault();
     if (watchlistHit) {
       setError(true);
-      setMessage(
-        `Watchlist alert: ${watchlistHit.reason}. Contact school leadership before allowing entry.`,
-      );
+      setMessage(t("signIn.watchlistAlert", { reason: watchlistHit.reason }));
       return;
     }
     setBusy(true);
@@ -85,7 +85,7 @@ export function SignInForm({
       onSignedIn?.(visit.name);
     } catch (err) {
       setError(true);
-      setMessage(err instanceof Error ? err.message : "Could not sign in.");
+      setMessage(err instanceof Error ? te(err.message) : t("signIn.error"));
     } finally {
       setBusy(false);
     }
@@ -105,12 +105,10 @@ export function SignInForm({
   if (completed && source === "self") {
     return (
       <div className="checkin-card card success-panel">
-        <h2>You&apos;re signed in</h2>
-        <p className="sub">
-          Welcome to Silverleaf Academy, {completed}. Please wait at reception if you need a visitor badge.
-        </p>
+        <h2>{t("signIn.successTitle")}</h2>
+        <p className="sub">{t("signIn.successSub", { name: completed })}</p>
         <button type="button" className="primary-btn" onClick={() => setCompleted("")}>
-          Sign in another visitor
+          {t("signIn.anotherSelf")}
         </button>
       </div>
     );
@@ -118,23 +116,23 @@ export function SignInForm({
 
   return (
     <form className={source === "self" ? "checkin-card card" : "signin-card card"} onSubmit={onSubmit}>
-      <h2>{source === "self" ? "Sign yourself in" : "Sign in a visitor"}</h2>
-      <p className="sub">{campus} campus</p>
+      <h2>{source === "self" ? t("signIn.selfTitle") : t("signIn.deskTitle")}</h2>
+      <p className="sub">{t("signIn.campus", { campus })}</p>
 
       {watchlistHit ? (
         <div className="watchlist-alert">
-          <strong>Watchlist alert</strong>
+          <strong>{t("signIn.watchlistTitle")}</strong>
           <p>{watchlistHit.reason}</p>
-          <p>Do not allow entry without contacting school leadership.</p>
+          <p>{t("signIn.watchlistBlock")}</p>
         </div>
       ) : null}
 
-      <label htmlFor="fName">Full name</label>
+      <label htmlFor="fName">{t("signIn.fullName")}</label>
       <input
         id="fName"
         type="text"
         autoComplete="name"
-        placeholder="e.g. Amina Joseph"
+        placeholder={t("signIn.namePlaceholder")}
         value={name}
         onChange={(event) => setName(event.target.value)}
         onBlur={() => void onPhoneBlur()}
@@ -153,26 +151,26 @@ export function SignInForm({
       />
       {autofillHint ? <div className="field-hint">{autofillHint}</div> : null}
 
-      <label htmlFor="fPurpose">Purpose of visit</label>
+      <label htmlFor="fPurpose">{t("signIn.purpose")}</label>
       <select
         id="fPurpose"
         value={purpose}
         onChange={(event) => setPurpose(event.target.value)}
         required
       >
-        <option value="">Select a reason</option>
+        <option value="">{t("signIn.selectReason")}</option>
         {VISIT_PURPOSES.map((item) => (
           <option key={item} value={item}>
-            {item}
+            {purposeLabel(item)}
           </option>
         ))}
       </select>
 
-      <label htmlFor="fHost">Person / office visiting</label>
+      <label htmlFor="fHost">{t("signIn.host")}</label>
       <input
         id="fHost"
         type="text"
-        placeholder="e.g. Erick Anthony, Front Office"
+        placeholder={t("signIn.hostPlaceholder")}
         value={host}
         onChange={(event) => setHost(event.target.value)}
         required
@@ -181,7 +179,7 @@ export function SignInForm({
       {source === "desk" ? <PhotoCapture photo={photo} onCapture={setPhoto} /> : null}
 
       <button className="submit-btn" type="submit" disabled={busy || !!watchlistHit}>
-        {busy ? "Signing in…" : "Sign in"}
+        {busy ? t("signIn.signing") : t("signIn.submit")}
       </button>
       <div className={`form-msg${error ? " err" : ""}`}>{message}</div>
     </form>

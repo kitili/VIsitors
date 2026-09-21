@@ -8,8 +8,10 @@ import {
   fetchWatchlist,
   removeWatchlistEntry,
 } from "@/lib/visits-client";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 export function WatchlistPanel() {
+  const { t, te } = useAppPreferences();
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -23,9 +25,9 @@ export function WatchlistPanel() {
 
   useEffect(() => {
     void load().catch((err) =>
-      setError(err instanceof Error ? err.message : "Could not load watchlist."),
+      setError(err instanceof Error ? te(err.message) : t("watchlist.loadError")),
     );
-  }, []);
+  }, [t, te]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -38,7 +40,7 @@ export function WatchlistPanel() {
       setReason("");
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not add entry.");
+      setError(err instanceof Error ? te(err.message) : t("watchlist.addError"));
     } finally {
       setBusy(false);
     }
@@ -49,35 +51,37 @@ export function WatchlistPanel() {
       await removeWatchlistEntry(id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not remove entry.");
+      setError(err instanceof Error ? te(err.message) : t("watchlist.removeError"));
     }
   }
 
   return (
     <div className="card watchlist-panel">
-      <h2>Safety watchlist</h2>
-      <p className="sub">
-        Visitors matching a name or phone on this list are blocked at sign-in. Contact leadership
-        before allowing entry.
-      </p>
+      <h2>{t("watchlist.title")}</h2>
+      <p className="sub">{t("watchlist.sub")}</p>
 
       <form className="watchlist-form" onSubmit={onSubmit}>
-        <input type="text" placeholder="Name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
+        <input
+          type="text"
+          placeholder={t("watchlist.namePh")}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <input
           type="tel"
-          placeholder="Phone (optional)"
+          placeholder={t("watchlist.phonePh")}
           value={phone}
           onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
         />
         <input
           type="text"
-          placeholder="Reason — required"
+          placeholder={t("watchlist.reasonPh")}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           required
         />
         <button type="submit" className="ghost-btn" disabled={busy}>
-          Add to watchlist
+          {t("watchlist.add")}
         </button>
       </form>
 
@@ -85,17 +89,17 @@ export function WatchlistPanel() {
 
       <ul className="watchlist-list">
         {entries.length === 0 ? (
-          <li className="empty">No watchlist entries yet.</li>
+          <li className="empty">{t("watchlist.empty")}</li>
         ) : (
           entries.map((entry) => (
             <li key={entry.id} className="watchlist-item">
               <div>
-                <strong>{entry.name || "Unknown name"}</strong>
+                <strong>{entry.name || t("watchlist.unknown")}</strong>
                 {entry.phone ? ` · ${formatPhone(entry.phone)}` : ""}
                 <div className="watchlist-reason">{entry.reason}</div>
               </div>
               <button type="button" className="ghost-btn" onClick={() => void remove(entry.id)}>
-                Remove
+                {t("watchlist.remove")}
               </button>
             </li>
           ))

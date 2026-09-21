@@ -2,6 +2,7 @@
 
 import { VisitRecord } from "@/domain/Visit";
 import { formatPhone } from "@/lib/format-phone";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -14,6 +15,8 @@ export function VisitorBadge({
   visit: VisitRecord;
   onDone: () => void;
 }) {
+  const { t, purposeLabel } = useAppPreferences();
+
   function printBadge() {
     window.print();
   }
@@ -21,7 +24,7 @@ export function VisitorBadge({
   return (
     <div className="badge-panel card">
       <div className="visitor-badge printable-badge">
-        <div className="badge-header">Silverleaf Academy · Visitor</div>
+        <div className="badge-header">{t("badge.header")}</div>
         <div className="badge-body">
           {visit.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -35,19 +38,19 @@ export function VisitorBadge({
             <div className="badge-name">{visit.name}</div>
             <div className="badge-campus">{visit.campus}</div>
             <div className="badge-meta">
-              {visit.purpose} · {visit.host}
+              {purposeLabel(visit.purpose)} · {visit.host}
             </div>
             <div className="badge-meta">{formatPhone(visit.phone)}</div>
-            <div className="badge-time">Signed in {formatTime(visit.signedInAt)}</div>
+            <div className="badge-time">{t("badge.signedIn", { time: formatTime(visit.signedInAt) })}</div>
           </div>
         </div>
       </div>
       <div className="badge-actions no-print">
         <button type="button" className="submit-btn" onClick={printBadge}>
-          Print badge
+          {t("badge.print")}
         </button>
         <button type="button" className="ghost-btn" onClick={onDone}>
-          Sign in another visitor
+          {t("badge.another")}
         </button>
       </div>
     </div>

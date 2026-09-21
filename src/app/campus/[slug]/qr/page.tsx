@@ -1,8 +1,7 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
-import { QrPoster } from "@/components/QrPoster";
-import { SiteHeader } from "@/components/SiteHeader";
+import { CampusQrShell } from "@/components/CampusQrShell";
 import { getCheckInUrl } from "@/lib/app-url";
 import { campusFromSlug } from "@/lib/campus-routes";
 
@@ -25,19 +24,11 @@ export default async function CampusQrPage({
   });
 
   return (
-    <div className="wrap campus-themed" data-campus={campus.name}>
-      <SiteHeader
-        campus={campus.name}
-        title="QR check-in poster"
-        subtitle={`Print this QR — visitors scan to sign in at ${campus.name}.`}
-        active="qr"
-      />
-      <QrPoster
-        checkInUrl={checkInUrl}
-        qrDataUrl={qrDataUrl}
-        campusSlug={campus.slug}
-        campusName={campus.name}
-      />
-    </div>
+    <CampusQrShell
+      campus={campus.name}
+      campusSlug={campus.slug}
+      checkInUrl={checkInUrl}
+      qrDataUrl={qrDataUrl}
+    />
   );
 }

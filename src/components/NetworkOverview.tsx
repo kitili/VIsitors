@@ -6,9 +6,11 @@ import { campusPath } from "@/lib/campus-routes";
 import type { CampusName } from "@/domain/Campus";
 import { fetchOverview } from "@/lib/visits-client";
 import type { NetworkOverview as OverviewData } from "@/services/VisitService";
+import { useAppPreferences } from "@/lib/i18n/context";
 import { WatchlistPanel } from "./WatchlistPanel";
 
 export function NetworkOverview() {
+  const { t, te } = useAppPreferences();
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [error, setError] = useState("");
 
@@ -18,23 +20,25 @@ export function NetworkOverview() {
 
   useEffect(() => {
     void load().catch((err) =>
-      setError(err instanceof Error ? err.message : "Could not load overview."),
+      setError(err instanceof Error ? te(err.message) : t("overview.loading")),
     );
     const timer = setInterval(() => void load().catch(() => undefined), 8000);
     return () => clearInterval(timer);
-  }, []);
+  }, [t, te]);
 
   if (error) return <p className="form-msg err">{error}</p>;
-  if (!overview) return <p className="form-msg">Loading network overview…</p>;
+  if (!overview) return <p className="form-msg">{t("overview.loading")}</p>;
 
   return (
     <>
       <div className="overview-summary card">
         <div className="overview-total">
           <span className="num">{overview.totalOnSite}</span>
-          <span className="label">visitors on site across all campuses today</span>
+          <span className="label">{t("overview.onSiteAll")}</span>
         </div>
-        <div className="overview-date">Today · {overview.date}</div>
+        <div className="overview-date">
+          {t("overview.today")} · {overview.date}
+        </div>
       </div>
 
       <div className="overview-grid">
@@ -49,22 +53,22 @@ export function NetworkOverview() {
             <div className="overview-stats">
               <div>
                 <span className="num">{campus.onSite}</span>
-                <span className="label">On site</span>
+                <span className="label">{t("overview.onSite")}</span>
               </div>
               <div>
                 <span className="num">{campus.totalToday}</span>
-                <span className="label">Total today</span>
+                <span className="label">{t("overview.totalToday")}</span>
               </div>
               <div>
                 <span className="num">{campus.selfToday}</span>
-                <span className="label">QR self</span>
+                <span className="label">{t("overview.qrSelf")}</span>
               </div>
               <div>
                 <span className="num">{campus.deskToday}</span>
-                <span className="label">Front desk</span>
+                <span className="label">{t("nav.frontDesk")}</span>
               </div>
             </div>
-            <span className="overview-link">Open front desk →</span>
+            <span className="overview-link">{t("overview.openDesk")}</span>
           </Link>
         ))}
       </div>

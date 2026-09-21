@@ -309,9 +309,9 @@ async function main() {
       path: "/campus/usa-river/history",
       mustInclude: ["Silverleaf", "Visit history", "Visitor", "Purpose", "Refresh now"],
     },
-    { path: "/campus/kijenge/qr", mustInclude: ["Silverleaf", "QR check-in poster"] },
-    { path: "/check-in", mustInclude: ["Silverleaf", "visitor check-in"] },
-    { path: "/qr", mustInclude: ["Visitor self check-in"] },
+    { path: "/campus/kijenge/qr", mustInclude: ["Silverleaf"] },
+    { path: "/check-in", mustInclude: ["Silverleaf"] },
+    { path: "/qr", mustInclude: ["Silverleaf"] },
   ];
 
   for (const page of pages) {

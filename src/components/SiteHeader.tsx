@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BrandLogo } from "./BrandLogo";
 import { campusPath } from "@/lib/campus-routes";
 import type { CampusName } from "@/domain/Campus";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 export function SiteHeader({
   title,
@@ -18,10 +19,11 @@ export function SiteHeader({
   campus: string;
   extra?: React.ReactNode;
 }) {
+  const { t } = useAppPreferences();
   const links = [
-    { href: campusPath(campus as CampusName, "desk"), label: "Front desk", key: "desk" as const },
-    { href: campusPath(campus as CampusName, "history"), label: "History", key: "history" as const },
-    { href: campusPath(campus as CampusName, "qr"), label: "QR posters", key: "qr" as const },
+    { href: campusPath(campus as CampusName, "desk"), label: t("nav.frontDesk"), key: "desk" as const },
+    { href: campusPath(campus as CampusName, "history"), label: t("nav.history"), key: "history" as const },
+    { href: campusPath(campus as CampusName, "qr"), label: t("nav.qrPosters"), key: "qr" as const },
   ];
 
   return (
@@ -37,7 +39,7 @@ export function SiteHeader({
         <div className="campus-badge" data-campus={campus}>
           {campus}
         </div>
-        <nav className="view-toggle" aria-label="Visitor log views">
+        <nav className="view-toggle" aria-label={t("nav.visitorLogViews")}>
           {links.map((link) => (
             <Link
               key={link.href}
@@ -49,7 +51,7 @@ export function SiteHeader({
           ))}
         </nav>
         <Link href="/" className="ghost-btn hub-link">
-          All campuses
+          {t("nav.allCampuses")}
         </Link>
         {extra}
       </div>

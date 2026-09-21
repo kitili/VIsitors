@@ -7,8 +7,10 @@ import { CampusPills } from "@/components/CampusPills";
 import { PhoneField } from "@/components/PhoneField";
 import { CAMPUS_NAMES, CampusName } from "@/domain/Campus";
 import { checkOutByPhone } from "@/lib/visits-client";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 export default function CheckOutPage() {
+  const { t, te } = useAppPreferences();
   const [campus, setCampus] = useState<CampusName>(CAMPUS_NAMES[0]);
   const [phone, setPhone] = useState("");
   const [done, setDone] = useState("");
@@ -27,7 +29,7 @@ export default function CheckOutPage() {
       setPhone("");
     } catch (err) {
       setError(true);
-      setMessage(err instanceof Error ? err.message : "Could not check out.");
+      setMessage(err instanceof Error ? te(err.message) : t("checkOut.error"));
     } finally {
       setBusy(false);
     }
@@ -36,35 +38,35 @@ export default function CheckOutPage() {
   return (
     <div className="checkin-shell">
       <Link href="/" className="checkin-home-link">
-        ← Silverleaf campuses
+        {t("checkOut.homeLink")}
       </Link>
       <div className="hero-banner">
         <BrandLogo variant="white" height={36} priority />
-        <h1>Check out</h1>
-        <p>Sign yourself out when leaving Silverleaf Academy</p>
+        <h1>{t("checkOut.title")}</h1>
+        <p>{t("checkOut.heroSub")}</p>
       </div>
       <hr className="gold-rule" />
 
       {done ? (
         <div className="checkin-card card success-panel">
-          <h2>Goodbye, {done}</h2>
-          <p className="sub">You have been signed out. Safe travels.</p>
+          <h2>{t("checkOut.goodbye", { name: done })}</h2>
+          <p className="sub">{t("checkOut.signedOut")}</p>
           <button type="button" className="primary-btn" onClick={() => setDone("")}>
-            Check out another visitor
+            {t("checkOut.another")}
           </button>
         </div>
       ) : (
         <form className="checkin-card card" onSubmit={onSubmit}>
-          <h2>Sign yourself out</h2>
-          <p className="sub">Enter the phone number you used when signing in.</p>
+          <h2>{t("checkOut.formTitle")}</h2>
+          <p className="sub">{t("checkOut.formSub")}</p>
 
-          <label>Campus</label>
+          <label>{t("checkOut.campus")}</label>
           <CampusPills value={campus} onChange={setCampus} />
 
           <PhoneField id="coPhone" value={phone} onChange={setPhone} />
 
           <button className="submit-btn" type="submit" disabled={busy}>
-            {busy ? "Checking out…" : "Check out"}
+            {busy ? t("checkOut.checking") : t("checkOut.submit")}
           </button>
           <div className={`form-msg${error ? " err" : ""}`}>{message}</div>
         </form>

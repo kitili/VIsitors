@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 export function PhotoCapture({
   photo,
@@ -9,11 +10,16 @@ export function PhotoCapture({
   photo: string | null;
   onCapture: (photo: string | null) => void;
 }) {
+  const { t } = useAppPreferences();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [live, setLive] = useState(false);
-  const [hint, setHint] = useState("Optional — for front-desk verification");
+  const [hint, setHint] = useState("");
+
+  useEffect(() => {
+    setHint(t("photo.hint"));
+  }, [t]);
 
   function stopCamera() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -33,9 +39,9 @@ export function PhotoCapture({
         videoRef.current.srcObject = stream;
       }
       setLive(true);
-      setHint("Line up the visitor, then capture.");
+      setHint(t("photo.lineup"));
     } catch {
-      setHint("Camera not available on this device.");
+      setHint(t("photo.unavailable"));
     }
   }
 
@@ -62,7 +68,7 @@ export function PhotoCapture({
     );
     onCapture(canvas.toDataURL("image/jpeg", 0.6));
     stopCamera();
-    setHint("Photo captured");
+    setHint(t("photo.captured"));
   }
 
   return (
@@ -70,7 +76,7 @@ export function PhotoCapture({
       <div className="photo-zone">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="photo-thumb" src={photo} alt="Visitor photo" />
+          <img className="photo-thumb" src={photo} alt={t("photo.alt")} />
         ) : (
           <div className="photo-thumb" aria-hidden />
         )}
@@ -85,16 +91,16 @@ export function PhotoCapture({
               }
               if (photo) {
                 onCapture(null);
-                setHint("Optional — for front-desk verification");
+                setHint(t("photo.hint"));
               }
               void startCamera();
             }}
           >
-            {live ? "Capture" : photo ? "Retake" : "Take photo"}
+            {live ? t("photo.capture") : photo ? t("photo.retake") : t("photo.take")}
           </button>
           {live ? (
             <button type="button" className="ghost-btn" onClick={stopCamera}>
-              Cancel
+              {t("photo.cancel")}
             </button>
           ) : null}
           <div className="hint field-hint">{hint}</div>

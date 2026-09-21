@@ -5,6 +5,8 @@ import "@fontsource/bai-jamjuree/600.css";
 import "@fontsource/bai-jamjuree/700.css";
 import "@fontsource/montserrat/600.css";
 import "@fontsource/montserrat/700.css";
+import { AppPreferencesProvider } from "@/lib/i18n/context";
+import { PreferencesToolbar } from "@/components/PreferencesToolbar";
 import { StorageBanner } from "@/components/StorageBanner";
 import { brand } from "@/lib/brand";
 import "./globals.css";
@@ -24,11 +26,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <StorageBanner />
-        {children}
-        <span className="sr-only">{brand.tagline}</span>
+        <AppPreferencesProvider>
+          <PreferencesToolbar />
+          <StorageBanner />
+          {children}
+          <span className="sr-only">{brand.tagline}</span>
+        </AppPreferencesProvider>
       </body>
     </html>
   );

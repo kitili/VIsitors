@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppPreferences } from "@/lib/i18n/context";
 import { BrandLogo } from "./BrandLogo";
 
 function withCampusParam(url: string, campusSlug?: string): string {
@@ -21,6 +22,7 @@ export function QrPoster({
   campusSlug?: string;
   campusName?: string;
 }) {
+  const { t } = useAppPreferences();
   const [href, setHref] = useState(checkInUrl ?? "");
   const [qr, setQr] = useState(qrDataUrl ?? "");
   const [health, setHealth] = useState<{ ok: boolean; message: string } | null>(null);
@@ -44,7 +46,7 @@ export function QrPoster({
           setQr(`/api/qr?${qrParams.toString()}`);
         }
       } catch {
-        setHealth({ ok: false, message: "Could not verify tunnel. Run npm run tunnel." });
+        setHealth({ ok: false, message: t("qr.tunnelError") });
       }
     }
     void refresh();
@@ -66,27 +68,24 @@ export function QrPoster({
       <div className="card qr-single-card">
         <div className="qr-single-banner">
           <BrandLogo variant="white" height={36} />
-          <h2>Visitor self check-in</h2>
+          <h2>{t("qr.selfCheckIn")}</h2>
           <p>
             {campusName
-              ? `Scan to sign in at ${campusName}`
-              : "Scan to open the sign-in form · all campuses"}
+              ? t("qr.scanCampus", { campus: campusName })
+              : t("qr.scanAll")}
           </p>
         </div>
 
         {health && !health.ok ? (
           <div className="qr-error-banner">
-            <strong>Tunnel offline</strong>
+            <strong>{t("qr.tunnelOffline")}</strong>
             <p>{health.message}</p>
-            <p>
-              In the project folder run: <code>npm run tunnel</code> then refresh this page and
-              scan again.
-            </p>
+            <p>{t("qr.tunnelHint")}</p>
           </div>
         ) : null}
 
         {health?.ok ? (
-          <div className="qr-live-banner">Live — scan this QR on any network</div>
+          <div className="qr-live-banner">{t("qr.liveBanner")}</div>
         ) : null}
 
         {qrSrc ? (
@@ -94,29 +93,28 @@ export function QrPoster({
           <img
             key={href}
             src={qrSrc}
-            alt="QR code for Silverleaf visitor self check-in"
+            alt={t("qr.qrAlt")}
             width={320}
             height={320}
           />
         ) : (
-          <p>Generating QR…</p>
+          <p>{t("qr.generating")}</p>
         )}
 
         {href ? (
           <div className="qr-link-box">
-            <span className="qr-link-label">Link inside this QR code</span>
+            <span className="qr-link-label">{t("qr.linkLabel")}</span>
             <a href={href} className="qr-link-strong" target="_blank" rel="noopener noreferrer">
               {href}
             </a>
             <button type="button" className="ghost-btn qr-copy-btn" onClick={() => void copyLink()}>
-              {copied ? "Copied!" : "Copy link"}
+              {copied ? t("qr.copied") : t("qr.copyLink")}
             </button>
           </div>
         ) : null}
 
         <div className="qr-network-hint">
-          <strong>Do not reuse old QR screenshots.</strong> The link changes when the tunnel
-          restarts. Always use this page for the current code.
+          <strong>{t("qr.noReuse")}</strong> {t("qr.noReuseDetail")}
         </div>
       </div>
     </div>

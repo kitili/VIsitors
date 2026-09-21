@@ -8,6 +8,7 @@ import { CampusPills } from "@/components/CampusPills";
 import { SignInForm } from "@/components/SignInForm";
 import { CAMPUS_NAMES, Campus, CampusName } from "@/domain/Campus";
 import { campusFromSlug } from "@/lib/campus-routes";
+import { useAppPreferences } from "@/lib/i18n/context";
 
 function resolvePresetCampus(param: string | null): CampusName | undefined {
   if (!param) return undefined;
@@ -17,6 +18,7 @@ function resolvePresetCampus(param: string | null): CampusName | undefined {
 }
 
 function CheckInInner() {
+  const { t } = useAppPreferences();
   const params = useSearchParams();
   const presetCampus = resolvePresetCampus(params.get("campus"));
   const [campus, setCampus] = useState<CampusName>(presetCampus ?? CAMPUS_NAMES[0]);
@@ -24,16 +26,16 @@ function CheckInInner() {
   return (
     <div className="checkin-shell">
       <Link href="/" className="checkin-home-link">
-        ← Silverleaf campuses
+        {t("checkIn.homeLink")}
       </Link>
       <div className="hero-banner">
         <BrandLogo variant="white" height={36} priority />
-        <h1>Welcome</h1>
-        <p>Silverleaf Academy visitor check-in</p>
+        <h1>{t("checkIn.welcome")}</h1>
+        <p>{t("checkIn.subtitle")}</p>
       </div>
       <hr className="gold-rule" />
       <div className="checkin-campus-picker">
-        <label>Which campus are you visiting?</label>
+        <label>{t("checkIn.whichCampus")}</label>
         <CampusPills value={campus} onChange={setCampus} />
       </div>
       <SignInForm campus={campus} source="self" />
@@ -41,9 +43,14 @@ function CheckInInner() {
   );
 }
 
+function CheckInLoading() {
+  const { t } = useAppPreferences();
+  return <div className="checkin-shell">{t("checkIn.loading")}</div>;
+}
+
 export default function CheckInPage() {
   return (
-    <Suspense fallback={<div className="checkin-shell">Loading check-in…</div>}>
+    <Suspense fallback={<CheckInLoading />}>
       <CheckInInner />
     </Suspense>
   );
