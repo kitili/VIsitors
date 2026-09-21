@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+data/visits.json
+data/visits.db
+data/visits.db-shm
+data/visits.db-wal
+data/photos/
+data/public-url.json
+.env.local
+.env
+.env.local
+*.log
+.DS_Store
