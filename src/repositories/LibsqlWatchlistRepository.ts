@@ -1,5 +1,5 @@
 import { PhoneNumber } from "@/domain/PhoneNumber";
-import { getTursoClient } from "@/db/turso";
+import { getSqlClient } from "@/db/client";
 import {
   WatchlistEntry,
   WatchlistInput,
@@ -16,7 +16,7 @@ type WatchlistRow = {
 
 export class LibsqlWatchlistRepository implements WatchlistRepository {
   private client() {
-    return getTursoClient();
+    return getSqlClient();
   }
 
   async all(): Promise<WatchlistEntry[]> {

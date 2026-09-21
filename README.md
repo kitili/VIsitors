@@ -41,34 +41,45 @@ Each campus also has **History** and **QR poster** tabs.
 npm run smoke
 ```
 
-## Deploy on Vercel
+## Database (SQL / SQLite)
 
-The app is deployed at your Vercel URL. For production you need:
+The app uses **SQL** via SQLite:
+
+| Environment | Storage |
+| --- | --- |
+| **Local dev** | `data/visits.db` (SQLite file, created automatically) |
+| **Vercel production** | [Turso](https://turso.tech) remote SQLite (free, persistent) |
+
+Initialize or verify the local database:
+
+```bash
+npm run init-db
+```
+
+Check database health: `GET /api/health`
+
+## Deploy on Vercel
 
 ### 1. Disable deployment protection (fixes login wall on QR scan)
 
-In Vercel → **Project → Settings → Deployment Protection** → turn **off** for Production.  
-Otherwise visitors scanning the QR hit a Vercel login page instead of the check-in form.
+Vercel → **Project → Settings → Deployment Protection** → turn **off** for Production.
 
-### 2. Add a Turso database (fixes form submit / saves visitors)
-
-Vercel serverless cannot use a local SQLite file permanently. Use free [Turso](https://turso.tech):
+### 2. Add Turso for persistent SQL on Vercel
 
 ```bash
-node scripts/setup-turso.mjs   # prints step-by-step instructions
+npm run setup:turso   # step-by-step instructions
 ```
 
-Add these **Environment Variables** in Vercel:
+Add in Vercel → **Settings → Environment Variables**:
 
 | Variable | Example |
 | --- | --- |
 | `TURSO_DATABASE_URL` | `libsql://silverleaf-visitors-xxx.turso.io` |
-| `TURSO_AUTH_TOKEN` | token from `turso db tokens create` |
+| `TURSO_AUTH_TOKEN` | from `turso db tokens create` |
 | `NEXT_PUBLIC_APP_URL` | `https://your-app.vercel.app` |
 
-Redeploy after adding env vars.
+Redeploy. Without Turso, forms may work briefly but **data is not saved** between requests.
 
 ### 3. QR codes on Vercel
 
-QR codes automatically use your Vercel URL — no cloudflare tunnel needed in production.  
-Open `/qr` on the deployed site and print that poster.
+QR codes use your Vercel URL automatically. Open `/qr` on the live site and print that poster.

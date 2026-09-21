@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isRemoteDatabase } from "@/db/client";
 
 type AppError = Error & { status?: number };
 
@@ -16,8 +17,8 @@ export function jsonError(error: unknown) {
   console.error(error);
   const message = error instanceof Error ? error.message : "Something went wrong.";
   const hint =
-    process.env.VERCEL && !process.env.TURSO_DATABASE_URL
-      ? " Database is not configured. Add Turso env vars on Vercel (see README)."
+    process.env.VERCEL && !isRemoteDatabase()
+      ? " For persistent storage on Vercel, add TURSO_DATABASE_URL (see README)."
       : "";
   return NextResponse.json({ error: message + hint }, { status: 500 });
 }

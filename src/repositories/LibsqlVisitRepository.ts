@@ -1,7 +1,7 @@
 import { PhoneNumber } from "@/domain/PhoneNumber";
 import { Visit } from "@/domain/Visit";
 import { VisitRecord } from "@/domain/types";
-import { getTursoClient } from "@/db/turso";
+import { getSqlClient } from "@/db/client";
 import { VisitQuery, VisitRepository } from "./VisitRepository";
 
 type VisitRow = {
@@ -20,7 +20,7 @@ type VisitRow = {
 
 export class LibsqlVisitRepository implements VisitRepository {
   private client() {
-    return getTursoClient();
+    return getSqlClient();
   }
 
   async all(): Promise<Visit[]> {

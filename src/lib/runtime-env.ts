@@ -5,10 +5,6 @@ export function isVercel(): boolean {
   return Boolean(process.env.VERCEL);
 }
 
-export function isTursoEnabled(): boolean {
-  return Boolean(process.env.TURSO_DATABASE_URL);
-}
-
 /** Writable data directory — /tmp on Vercel, ./data locally. */
 export function getDataDir(): string {
   const dir = isVercel()
