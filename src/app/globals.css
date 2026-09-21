@@ -526,6 +526,48 @@ a:focus-visible {
   background: var(--gold-15);
 }
 
+.history-live-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--electric-blue);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+}
+
+.live-dot--pulse {
+  animation: live-pulse 1s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.history-refresh-btn {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.dash-table-wrap--refreshing {
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
 .history-presets {
   display: flex;
   flex-wrap: wrap;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VisitRecord } from "@/domain/Visit";
 import { localDateKey } from "@/lib/date-key";
 import { formatPhone } from "@/lib/format-phone";
@@ -27,6 +27,10 @@ function formatDuration(signedInAt: string, signedOutAt: string | null) {
   const hours = Math.floor(mins / 60);
   const rem = mins % 60;
   return rem ? `${hours}h ${rem}m` : `${hours}h`;
+}
+
+function formatUpdated(at: Date) {
+  return at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 type DatePreset = "today" | "yesterday" | "week" | "month" | "all";
@@ -62,8 +66,11 @@ export function DashboardView({ campus }: { campus: string }) {
   const [allVisits, setAllVisits] = useState<VisitRecord[]>([]);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState("");
+  const mountedRef = useRef(true);
 
   const dateError = dateFrom > dateTo ? "From date must be on or before To date." : "";
 
@@ -98,25 +105,43 @@ export function DashboardView({ campus }: { campus: string }) {
   const hasExtraFilters = status !== "all" || source !== "all" || search.trim().length > 0;
   const stats = hasExtraFilters ? filteredStats : rangeStats;
 
-  async function load() {
-    if (dateError) return;
-    try {
-      setError("");
-      setLoading(true);
-      setAllVisits(
-        await fetchVisits({
+  const load = useCallback(
+    async (silent = false) => {
+      if (dateError) return;
+      try {
+        setError("");
+        if (silent) {
+          setRefreshing(true);
+        } else {
+          setInitialLoading(true);
+        }
+        const rows = await fetchVisits({
           campus,
           dateFrom,
           dateTo,
           search: search.trim() || undefined,
-        }),
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load dashboard.");
-    } finally {
-      setLoading(false);
-    }
-  }
+        });
+        if (!mountedRef.current) return;
+        setAllVisits(rows);
+        setLastUpdated(new Date());
+      } catch (err) {
+        if (!mountedRef.current) return;
+        setError(err instanceof Error ? err.message : "Could not load dashboard.");
+      } finally {
+        if (!mountedRef.current) return;
+        setInitialLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [campus, dateFrom, dateTo, search, dateError],
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setSearch(searchInput), 300);
@@ -124,11 +149,20 @@ export function DashboardView({ campus }: { campus: string }) {
   }, [searchInput]);
 
   useEffect(() => {
-    void load();
-    const timer = setInterval(() => void load(), 8000);
+    void load(false);
+    const timer = setInterval(() => void load(true), 3000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateFrom, dateTo, campus, search]);
+  }, [load]);
+
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        void load(true);
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [load]);
 
   function applyPreset(preset: DatePreset) {
     const range = presetRange(preset);
@@ -168,6 +202,20 @@ export function DashboardView({ campus }: { campus: string }) {
 
   return (
     <>
+      <div className="history-live-bar">
+        <span className={`live-dot${refreshing ? " live-dot--pulse" : ""}`} aria-hidden />
+        <span>
+          {initialLoading
+            ? "Loading history…"
+            : lastUpdated
+              ? `Live · updated ${formatUpdated(lastUpdated)}`
+              : "Live"}
+        </span>
+        <button type="button" className="ghost-btn history-refresh-btn" onClick={() => void load(true)}>
+          Refresh now
+        </button>
+      </div>
+
       <div className="history-presets">
         {(
           [
@@ -277,7 +325,9 @@ export function DashboardView({ campus }: { campus: string }) {
 
       <div className="history-summary-bar">
         <span>
-          {loading ? "Loading…" : `${visits.length} visitor${visits.length === 1 ? "" : "s"} shown`}
+          {initialLoading
+            ? "Loading…"
+            : `${visits.length} visitor${visits.length === 1 ? "" : "s"} shown`}
         </span>
         <span className="history-filter-tags">{filterSummary}</span>
       </div>
@@ -285,7 +335,7 @@ export function DashboardView({ campus }: { campus: string }) {
       {dateError ? <p className="form-msg err">{dateError}</p> : null}
       {error ? <p className="form-msg err">{error}</p> : null}
 
-      <div className="dash-table-wrap">
+      <div className={`dash-table-wrap${refreshing ? " dash-table-wrap--refreshing" : ""}`}>
         <table className="dash-table">
           <thead>
             <tr>
@@ -301,7 +351,7 @@ export function DashboardView({ campus }: { campus: string }) {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {initialLoading ? (
               <tr>
                 <td colSpan={9} className="history-empty">
                   Loading visit history…
@@ -314,7 +364,7 @@ export function DashboardView({ campus }: { campus: string }) {
                     ? "Fix the date range to see visits."
                     : hasExtraFilters
                       ? "No visits match these filters. Try clearing filters or widening the date range."
-                      : "No visits recorded for this campus and date range."}
+                      : "No visits recorded for this campus and date range. New sign-ins appear here within a few seconds."}
                 </td>
               </tr>
             ) : (
