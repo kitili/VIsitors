@@ -2,9 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import { VISIT_PURPOSES } from "@/domain/VisitPurpose";
-import { createVisit } from "@/lib/visits-client";
+import { VisitRecord } from "@/domain/Visit";
+import { WatchlistEntry } from "@/repositories/WatchlistRepository";
+import { createVisit, lookupVisitor } from "@/lib/visits-client";
 import { PhoneField } from "./PhoneField";
 import { PhotoCapture } from "./PhotoCapture";
+import { VisitorBadge } from "./VisitorBadge";
 
 export function SignInForm({
   campus,
@@ -24,9 +27,36 @@ export function SignInForm({
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [completed, setCompleted] = useState("");
+  const [deskVisit, setDeskVisit] = useState<VisitRecord | null>(null);
+  const [watchlistHit, setWatchlistHit] = useState<WatchlistEntry | null>(null);
+  const [autofillHint, setAutofillHint] = useState("");
+
+  async function onPhoneBlur() {
+    if (phone.replace(/\D/g, "").length < 9) return;
+    try {
+      const { visit, watchlist } = await lookupVisitor(phone, name);
+      setWatchlistHit(watchlist);
+      if (watchlist) return;
+      if (visit && source === "desk") {
+        if (!name) setName(visit.name);
+        if (!host) setHost(visit.host);
+        if (!purpose) setPurpose(visit.purpose);
+        setAutofillHint(`Returning visitor — details filled from last visit.`);
+      }
+    } catch {
+      setAutofillHint("");
+    }
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (watchlistHit) {
+      setError(true);
+      setMessage(
+        `Watchlist alert: ${watchlistHit.reason}. Contact school leadership before allowing entry.`,
+      );
+      return;
+    }
     setBusy(true);
     setError(false);
     setMessage("");
@@ -45,8 +75,12 @@ export function SignInForm({
       setPurpose("");
       setHost("");
       setPhoto(null);
+      setAutofillHint("");
+      setWatchlistHit(null);
       if (source === "self") {
         setCompleted(visit.name);
+      } else {
+        setDeskVisit(visit);
       }
       onSignedIn?.(visit.name);
     } catch (err) {
@@ -55,6 +89,17 @@ export function SignInForm({
     } finally {
       setBusy(false);
     }
+  }
+
+  if (deskVisit && source === "desk") {
+    return (
+      <VisitorBadge
+        visit={deskVisit}
+        onDone={() => {
+          setDeskVisit(null);
+        }}
+      />
+    );
   }
 
   if (completed && source === "self") {
@@ -76,6 +121,14 @@ export function SignInForm({
       <h2>{source === "self" ? "Sign yourself in" : "Sign in a visitor"}</h2>
       <p className="sub">{campus} campus</p>
 
+      {watchlistHit ? (
+        <div className="watchlist-alert">
+          <strong>Watchlist alert</strong>
+          <p>{watchlistHit.reason}</p>
+          <p>Do not allow entry without contacting school leadership.</p>
+        </div>
+      ) : null}
+
       <label htmlFor="fName">Full name</label>
       <input
         id="fName"
@@ -84,10 +137,21 @@ export function SignInForm({
         placeholder="e.g. Amina Joseph"
         value={name}
         onChange={(event) => setName(event.target.value)}
+        onBlur={() => void onPhoneBlur()}
         required
       />
 
-      <PhoneField id="fPhone" value={phone} onChange={setPhone} />
+      <PhoneField
+        id="fPhone"
+        value={phone}
+        onChange={(digits) => {
+          setPhone(digits);
+          setWatchlistHit(null);
+          setAutofillHint("");
+        }}
+        onBlur={() => void onPhoneBlur()}
+      />
+      {autofillHint ? <div className="field-hint">{autofillHint}</div> : null}
 
       <label htmlFor="fPurpose">Purpose of visit</label>
       <select
@@ -116,7 +180,7 @@ export function SignInForm({
 
       {source === "desk" ? <PhotoCapture photo={photo} onCapture={setPhoto} /> : null}
 
-      <button className="submit-btn" type="submit" disabled={busy}>
+      <button className="submit-btn" type="submit" disabled={busy || !!watchlistHit}>
         {busy ? "Signing in…" : "Sign in"}
       </button>
       <div className={`form-msg${error ? " err" : ""}`}>{message}</div>

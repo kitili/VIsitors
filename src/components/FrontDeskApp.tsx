@@ -50,7 +50,12 @@ export function FrontDeskApp({ campus }: { campus: string }) {
             void refresh();
           }}
         />
-        <VisitorBoard visits={visits} onChanged={() => void refresh()} onToast={showToast} />
+        <VisitorBoard
+          campus={campus}
+          visits={visits}
+          onChanged={() => void refresh()}
+          onToast={showToast}
+        />
       </div>
       {error ? <p className="form-msg err">{error}</p> : null}
       <p className="footnote">

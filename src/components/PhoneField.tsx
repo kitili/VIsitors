@@ -6,10 +6,12 @@ export function PhoneField({
   id,
   value,
   onChange,
+  onBlur,
 }: {
   id: string;
   value: string;
   onChange: (digits: string) => void;
+  onBlur?: () => void;
 }) {
   return (
     <>
@@ -34,6 +36,7 @@ export function PhoneField({
           event.preventDefault();
           onChange(PhoneNumber.digitsOnly(event.clipboardData.getData("text")));
         }}
+        onBlur={onBlur}
       />
       <div className="field-hint">Digits only — Tanzanian mobiles are usually 10 digits starting with 0.</div>
     </>

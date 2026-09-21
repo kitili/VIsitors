@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "fs";
 import os from "os";
 import path from "path";
+import { isVercel } from "./runtime-env";
 
 const SKIP_INTERFACE = /^(tun|tap|wg|docker|veth|br-|lo|vmnet|utun)/i;
 const SKIP_IP_PREFIX = ["10.8.", "169.254."];
@@ -25,6 +26,8 @@ let cachedPublicUrl: string | null | undefined;
 let cachedPublicAt = 0;
 
 function getPublicUrlFromFile(): string | null {
+  if (isVercel()) return null;
+
   if (cachedPublicUrl !== undefined && Date.now() - cachedPublicAt < 3000) {
     return cachedPublicUrl;
   }
@@ -44,6 +47,16 @@ function getPublicUrlFromFile(): string | null {
   }
   cachedPublicAt = Date.now();
   return cachedPublicUrl;
+}
+
+function getVercelBaseUrl(): string | null {
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL?.replace(/\/$/, "");
+  if (production) return `https://${production}`;
+
+  const vercelUrl = process.env.VERCEL_URL?.replace(/\/$/, "");
+  if (vercelUrl) return `https://${vercelUrl}`;
+
+  return null;
 }
 
 export function getNetworkIps(): string[] {
@@ -77,12 +90,15 @@ export function getPublicBaseUrl(host?: string): string {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
   if (configured) return configured;
 
+  const vercelBase = getVercelBaseUrl();
+  if (vercelBase) return vercelBase;
+
   const fromFile = getPublicUrlFromFile();
   if (fromFile) return fromFile;
 
   const hostname = host?.split(":")[0];
   if (hostname && !isPrivateHost(hostname)) {
-    const proto = hostname.includes("loca.lt") ? "https" : "http";
+    const proto = hostname.includes("loca.lt") || hostname.includes("vercel.app") ? "https" : "http";
     return `${proto}://${host}`;
   }
 
@@ -94,7 +110,7 @@ function getLocalBaseUrl(host?: string): string {
   const port = portFromHost(host);
 
   if (hostname && !isPrivateHost(hostname)) {
-    return `http://${host}`;
+    return hostname.includes("vercel.app") ? `https://${host}` : `http://${host}`;
   }
 
   const ip = getNetworkIps()[0];
@@ -116,4 +132,8 @@ export function getCheckInUrl(host?: string, campusSlug?: string): string {
 export function isLocalHost(host?: string): boolean {
   const hostname = host?.split(":")[0];
   return !hostname || hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+export function isDeployedProduction(): boolean {
+  return isVercel() || Boolean(process.env.NEXT_PUBLIC_APP_URL);
 }

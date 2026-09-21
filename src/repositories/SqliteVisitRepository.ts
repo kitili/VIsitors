@@ -1,3 +1,4 @@
+import { PhoneNumber } from "@/domain/PhoneNumber";
 import { Visit } from "@/domain/Visit";
 import { VisitRecord } from "@/domain/types";
 import { getDatabase } from "@/db/index";
@@ -32,6 +33,32 @@ export class SqliteVisitRepository implements VisitRepository {
     return row ? Visit.fromRecord(this.toRecord(row)) : null;
   }
 
+  async findLatestByPhone(phone: string): Promise<Visit | null> {
+    const digits = PhoneNumber.digitsOnly(phone);
+    if (!digits) return null;
+    const row = getDatabase()
+      .prepare("SELECT * FROM visits WHERE phone = ? ORDER BY signed_in_at DESC LIMIT 1")
+      .get(digits) as VisitRow | undefined;
+    return row ? Visit.fromRecord(this.toRecord(row)) : null;
+  }
+
+  async findActiveByPhone(phone: string, campus?: string): Promise<Visit | null> {
+    const digits = PhoneNumber.digitsOnly(phone);
+    if (!digits) return null;
+    const row = campus
+      ? (getDatabase()
+          .prepare(
+            "SELECT * FROM visits WHERE phone = ? AND campus = ? AND signed_out_at IS NULL ORDER BY signed_in_at DESC LIMIT 1",
+          )
+          .get(digits, campus) as VisitRow | undefined)
+      : (getDatabase()
+          .prepare(
+            "SELECT * FROM visits WHERE phone = ? AND signed_out_at IS NULL ORDER BY signed_in_at DESC LIMIT 1",
+          )
+          .get(digits) as VisitRow | undefined);
+    return row ? Visit.fromRecord(this.toRecord(row)) : null;
+  }
+
   async query(filters: VisitQuery): Promise<Visit[]> {
     const clauses: string[] = [];
     const params: Record<string, string | number> = {};
@@ -62,13 +89,32 @@ export class SqliteVisitRepository implements VisitRepository {
       clauses.push("source = @source");
       params.source = filters.source;
     }
+    if (filters.phone) {
+      clauses.push("phone = @phone");
+      params.phone = PhoneNumber.digitsOnly(filters.phone);
+    }
+    if (filters.search) {
+      clauses.push("(name LIKE @search OR phone LIKE @search OR host LIKE @search)");
+      params.search = `%${filters.search.trim()}%`;
+    }
 
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+    const limit = filters.limit ? ` LIMIT ${Math.min(filters.limit, 500)}` : "";
     const rows = getDatabase()
-      .prepare(`SELECT * FROM visits ${where} ORDER BY signed_in_at DESC`)
+      .prepare(`SELECT * FROM visits ${where} ORDER BY signed_in_at DESC${limit}`)
       .all(params) as VisitRow[];
 
     return rows.map((row) => Visit.fromRecord(this.toRecord(row)));
+  }
+
+  async signOutAll(campus: string, date: string): Promise<number> {
+    const now = new Date().toISOString();
+    const result = getDatabase()
+      .prepare(
+        "UPDATE visits SET signed_out_at = @now WHERE campus = @campus AND date = @date AND signed_out_at IS NULL",
+      )
+      .run({ now, campus, date });
+    return result.changes;
   }
 
   async save(visit: Visit): Promise<void> {

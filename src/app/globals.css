@@ -1009,3 +1009,231 @@ a:focus-visible {
   white-space: nowrap;
   border: 0;
 }
+
+.hub-quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.hub-quick-link {
+  padding: 16px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--electric-blue);
+  text-decoration: none;
+}
+
+.overview-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+
+.overview-total .num {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--electric-blue);
+  margin-right: 12px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.overview-card {
+  padding: 18px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.overview-card h3 {
+  margin: 0 0 12px;
+}
+
+.overview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.overview-stats .num {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.overview-stats .label {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.overview-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--electric-blue);
+  font-weight: 600;
+}
+
+.watchlist-panel {
+  padding: 22px;
+}
+
+.watchlist-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr auto;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.watchlist-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.watchlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--card-border);
+}
+
+.watchlist-reason {
+  color: var(--ink-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.watchlist-alert {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  color: #7f1d1d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.stale-banner {
+  background: #fff8e6;
+  border-bottom: 1px solid #ffe08a;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #7a5b00;
+}
+
+.visitor-row--stale {
+  background: #fff8e6;
+}
+
+.board-actions {
+  padding: 0 12px 8px;
+}
+
+.badge-panel {
+  padding: 22px;
+}
+
+.visitor-badge {
+  border: 2px solid var(--electric-blue);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.badge-header {
+  background: var(--electric-blue);
+  color: white;
+  padding: 10px 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.badge-body {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  align-items: center;
+}
+
+.badge-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--gold-15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--electric-blue);
+}
+
+.badge-name {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.badge-campus {
+  color: var(--electric-blue);
+  font-weight: 600;
+}
+
+.badge-meta,
+.badge-time {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.badge-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.filter-group--wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 760px) {
+  .hub-quick-links {
+    grid-template-columns: 1fr 1fr;
+  }
+  .watchlist-form {
+    grid-template-columns: 1fr;
+  }
+  .overview-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-badge,
+  .printable-badge * {
+    visibility: visible;
+  }
+  .printable-badge {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 320px;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

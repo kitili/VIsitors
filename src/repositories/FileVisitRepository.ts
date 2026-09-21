@@ -30,6 +30,39 @@ export class FileVisitRepository implements VisitRepository {
     return visits.find((visit) => visit.id === id) ?? null;
   }
 
+  async findLatestByPhone(phone: string): Promise<Visit | null> {
+    const visits = await this.read();
+    return (
+      visits
+        .filter((visit) => visit.phone.toString() === phone.replace(/\D/g, ""))
+        .sort((a, b) => b.signedInAt.getTime() - a.signedInAt.getTime())[0] ?? null
+    );
+  }
+
+  async findActiveByPhone(phone: string, campus?: string): Promise<Visit | null> {
+    const visits = await this.read();
+    return (
+      visits.find(
+        (visit) =>
+          visit.phone.toString() === phone.replace(/\D/g, "") &&
+          visit.isOnSite &&
+          (!campus || visit.campus.toString() === campus),
+      ) ?? null
+    );
+  }
+
+  async signOutAll(campus: string, date: string): Promise<number> {
+    const visits = await this.read();
+    let count = 0;
+    for (const visit of visits) {
+      if (visit.campus.toString() === campus && visit.date === date && visit.isOnSite) {
+        await this.save(visit.signOut());
+        count += 1;
+      }
+    }
+    return count;
+  }
+
   async query(filters: VisitQuery): Promise<Visit[]> {
     const visits = await this.read();
     return visits.filter((visit) => {

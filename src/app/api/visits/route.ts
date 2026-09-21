@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const onSiteOnly = request.nextUrl.searchParams.get("onSite") === "1";
     const signedOutOnly = request.nextUrl.searchParams.get("signedOut") === "1";
     const source = request.nextUrl.searchParams.get("source") as "desk" | "self" | null;
+    const search = request.nextUrl.searchParams.get("search") || undefined;
 
     const visits = await getVisitService().list({
       campus,
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
       onSiteOnly,
       signedOutOnly,
       source: source === "desk" || source === "self" ? source : undefined,
+      search,
     });
     return NextResponse.json({ visits });
   } catch (error) {

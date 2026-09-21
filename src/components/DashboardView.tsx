@@ -21,6 +21,7 @@ export function DashboardView({ campus }: { campus: string }) {
   const [status, setStatus] = useState<"all" | "on-site" | "left">("all");
   const [source, setSource] = useState<"all" | "desk" | "self">("all");
   const [allVisits, setAllVisits] = useState<VisitRecord[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -54,6 +55,7 @@ export function DashboardView({ campus }: { campus: string }) {
           campus,
           dateFrom,
           dateTo,
+          search: search.trim() || undefined,
         }),
       );
     } catch (err) {
@@ -68,7 +70,7 @@ export function DashboardView({ campus }: { campus: string }) {
     const timer = setInterval(() => void load(), 5000);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateFrom, dateTo, campus]);
+  }, [dateFrom, dateTo, campus, search]);
 
   function exportCsv() {
     if (visits.length === 0) return;
@@ -129,6 +131,16 @@ export function DashboardView({ campus }: { campus: string }) {
             <option value="on-site">On site now</option>
             <option value="left">Signed out</option>
           </select>
+        </div>
+        <div className="filter-group filter-group--wide">
+          <label htmlFor="search">Search</label>
+          <input
+            id="search"
+            type="search"
+            placeholder="Name, phone, or host"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
         </div>
         <div className="filter-group">
           <label htmlFor="source">Check-in type</label>

@@ -14,5 +14,10 @@ export function jsonError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status });
   }
   console.error(error);
-  return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+  const message = error instanceof Error ? error.message : "Something went wrong.";
+  const hint =
+    process.env.VERCEL && !process.env.TURSO_DATABASE_URL
+      ? " Database is not configured. Add Turso env vars on Vercel (see README)."
+      : "";
+  return NextResponse.json({ error: message + hint }, { status: 500 });
 }

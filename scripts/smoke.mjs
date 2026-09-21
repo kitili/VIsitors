@@ -72,6 +72,48 @@ async function main() {
   });
   assert(selfVisit.status === 201, `Self check-in failed: ${JSON.stringify(selfVisit.body)}`);
 
+  const lookup = await req("/api/visits/lookup?phone=0754111222");
+  assert(lookup.status === 200, "Phone lookup failed");
+  assert(lookup.body.visit?.name === "Desk Visitor", "Lookup did not return last visit");
+
+  const overview = await req("/api/overview");
+  assert(overview.status === 200, "Overview failed");
+  assert(Array.isArray(overview.body.campuses), "Overview missing campuses");
+  assert(overview.body.campuses.length === 5, "Overview should include 5 campuses");
+
+  const search = await req("/api/visits?campus=Usa%20River&search=Desk");
+  assert(search.status === 200, "Search failed");
+  assert(
+    search.body.visits.some((visit) => visit.name === "Desk Visitor"),
+    "Search did not find desk visitor",
+  );
+
+  const watchlistAdd = await req("/api/watchlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      phone: "0754999999",
+      reason: "Smoke test blocked person",
+    }),
+  });
+  assert(watchlistAdd.status === 201, "Watchlist add failed");
+
+  const blocked = await req("/api/visits", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: "Blocked Person",
+      phone: "0754999999",
+      purpose: "Interview",
+      host: "Front Office",
+      campus: "Usa River",
+      source: "desk",
+    }),
+  });
+  assert(blocked.status === 400, "Watchlist should block sign-in");
+
+  await req(`/api/watchlist/${watchlistAdd.body.entry.id}`, { method: "DELETE" });
+
   const listed = await req("/api/visits?campus=Usa%20River&onSite=1");
   assert(listed.status === 200, "Campus list failed");
   assert(
@@ -79,14 +121,20 @@ async function main() {
     "Desk visitor missing from campus list",
   );
 
-  const signedOut = await req(`/api/visits/${deskVisit.body.visit.id}`, { method: "PATCH" });
-  assert(signedOut.status === 200, "Sign-out failed");
+  const checkOut = await req("/api/visits/check-out", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone: "0754111222", campus: "Usa River" }),
+  });
+  assert(checkOut.status === 200, "Self check-out failed");
 
   const history = await req("/api/visits?campus=Usa%20River&dateFrom=2020-01-01&dateTo=2099-12-31");
   assert(history.status === 200, "History query failed");
 
   const pages = [
     "/",
+    "/overview",
+    "/check-out",
     "/campus/usa-river",
     "/campus/usa-river/history",
     "/campus/kijenge/qr",
@@ -99,7 +147,7 @@ async function main() {
     assert(html.includes("Silverleaf"), `${page} is missing Silverleaf branding`);
   }
 
-  console.log("Smoke test passed: open campus dashboards, photos, history, QR check-in.");
+  console.log("Smoke test passed: overview, search, lookup, watchlist, check-out, QR check-in.");
 }
 
 main().catch((error) => {

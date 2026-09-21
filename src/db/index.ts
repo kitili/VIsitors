@@ -2,24 +2,8 @@ import Database from "better-sqlite3";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 import { VisitRecord } from "@/domain/types";
-
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS visits (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  purpose TEXT NOT NULL,
-  host TEXT NOT NULL,
-  campus TEXT NOT NULL,
-  date TEXT NOT NULL,
-  photo TEXT,
-  source TEXT NOT NULL CHECK(source IN ('desk', 'self')),
-  signed_in_at TEXT NOT NULL,
-  signed_out_at TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_visits_campus_date ON visits(campus, date);
-CREATE INDEX IF NOT EXISTS idx_visits_signed_out ON visits(signed_out_at);
-`;
+import { getDatabasePath } from "@/lib/runtime-env";
+import { SCHEMA } from "./schema";
 
 const globalForDb = globalThis as typeof globalThis & {
   sqlite?: Database.Database;
@@ -27,13 +11,12 @@ const globalForDb = globalThis as typeof globalThis & {
 
 export function getDatabase(): Database.Database {
   if (!globalForDb.sqlite) {
-    const dbPath = path.join(process.cwd(), "data", "visits.db");
-    const db = new Database(dbPath);
+    const db = new Database(getDatabasePath());
     db.pragma("journal_mode = WAL");
-    db.exec(SCHEMA);
-    migrateJsonIfNeeded(db);
     globalForDb.sqlite = db;
   }
+  globalForDb.sqlite.exec(SCHEMA);
+  migrateJsonIfNeeded(globalForDb.sqlite);
   return globalForDb.sqlite;
 }
 
@@ -41,7 +24,7 @@ function migrateJsonIfNeeded(db: Database.Database) {
   const count = db.prepare("SELECT COUNT(*) AS total FROM visits").get() as { total: number };
   if (count.total > 0) return;
 
-  const jsonPath = path.join(process.cwd(), "data", "visits.json");
+  const jsonPath = path.join(path.dirname(getDatabasePath()), "visits.json");
   if (!existsSync(jsonPath)) return;
 
   const records = JSON.parse(readFileSync(jsonPath, "utf8")) as VisitRecord[];

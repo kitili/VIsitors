@@ -3,6 +3,8 @@ import { getVisitService } from "@/lib/container";
 import { jsonError } from "@/lib/http";
 import { VisitCsvExporter } from "@/services/VisitCsvExporter";
 
+export const runtime = "nodejs";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -20,7 +22,9 @@ export async function GET(request: NextRequest) {
       source: source === "desk" || source === "self" ? source : undefined,
     });
     const csv = new VisitCsvExporter().export(visits);
-    const filename = `visitor-log-${(campus || "all").replace(/\s+/g, "-").toLowerCase()}-${date || "all"}.csv`;
+    const range =
+      dateFrom && dateTo ? `${dateFrom}-to-${dateTo}` : date || "all";
+    const filename = `visitor-log-${(campus || "all").replace(/\s+/g, "-").toLowerCase()}-${range}.csv`;
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

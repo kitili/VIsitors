@@ -12,3 +12,4 @@ data/public-url.json
 .env.local
 *.log
 .DS_Store
+.vercel

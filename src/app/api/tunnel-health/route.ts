@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
-import { getCheckInUrl } from "@/lib/app-url";
+import { getCheckInUrl, isDeployedProduction } from "@/lib/app-url";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   const checkInUrl = getCheckInUrl();
+
+  if (isDeployedProduction()) {
+    return NextResponse.json({
+      ok: true,
+      status: 200,
+      checkInUrl,
+      message: "Live on the public web.",
+    });
+  }
+
   try {
     const response = await fetch(checkInUrl, {
       method: "GET",
