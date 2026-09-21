@@ -4,25 +4,34 @@ Turso setup for Vercel (persistent SQL database)
 
 PRODUCTION URL: https://v-isitors.vercel.app
 
-OPTION A — Vercel Marketplace (recommended)
--------------------------------------------
-1. Open and accept terms:
+FASTEST PATH
+------------
+1. Accept terms (one-time):
    https://vercel.com/mourinekitilimourine-8096s-projects/~/integrations/accept-terms/tursocloud
 
 2. Run:
-   vercel integration add turso
+   npm run provision:turso
 
-3. Link the database to project "v-isitors"
+   This provisions Turso, injects env vars, redeploys, and verifies persistence.
 
-4. Redeploy:
-   vercel --prod
-
-5. Verify:
+3. Confirm:
    npm run handover:production
 
 
-OPTION B — Manual (turso.tech)
-------------------------------
+MANUAL CLI
+----------
+vercel integration add tursocloud/database \\
+  -n silverleaf-visitors \\
+  -m region=iad1 \\
+  --plan starter \\
+  -e production
+
+vercel --prod
+npm run handover:production
+
+
+MANUAL (turso.tech)
+-------------------
 1. Create account at https://turso.tech
 2. Install CLI:  curl -sSfL https://get.tur.so/install.sh | bash
 3. Login:        turso auth login

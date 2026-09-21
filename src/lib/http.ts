@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isRemoteDatabase } from "@/db/client";
+import { isPersistentDatabase } from "@/db/client";
 
 type AppError = Error & { status?: number };
 
@@ -17,7 +17,7 @@ export function jsonError(error: unknown) {
   console.error(error);
   const message = error instanceof Error ? error.message : "Something went wrong.";
   const hint =
-    process.env.VERCEL && !isRemoteDatabase()
+    process.env.VERCEL && !isPersistentDatabase()
       ? " For persistent storage on Vercel, add TURSO_DATABASE_URL (see README)."
       : "";
   return NextResponse.json({ error: message + hint }, { status: 500 });

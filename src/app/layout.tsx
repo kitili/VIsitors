@@ -5,6 +5,7 @@ import "@fontsource/bai-jamjuree/600.css";
 import "@fontsource/bai-jamjuree/700.css";
 import "@fontsource/montserrat/600.css";
 import "@fontsource/montserrat/700.css";
+import { StorageBanner } from "@/components/StorageBanner";
 import { brand } from "@/lib/brand";
 import "./globals.css";
 
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        <StorageBanner />
         {children}
         <span className="sr-only">{brand.tagline}</span>
       </body>

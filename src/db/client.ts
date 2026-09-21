@@ -1,4 +1,5 @@
 import { createClient, type Client } from "@libsql/client";
+import { createClient as createWebClient } from "@libsql/client/web";
 import { existsSync, readFileSync } from "fs";
 import path from "path";
 import { VisitRecord } from "@/domain/types";
@@ -10,12 +11,39 @@ const globalForSql = globalThis as typeof globalThis & {
   sqlReady?: Promise<void>;
 };
 
+function tursoConfig() {
+  const url = process.env.TURSO_DATABASE_URL?.trim();
+  const authToken = process.env.TURSO_AUTH_TOKEN?.trim();
+  if (!url) return null;
+  return { url, authToken };
+}
+
 /** SQLite file locally, Turso libsql URL on Vercel when configured. */
 export function getSqlDatabaseUrl(): string {
-  if (process.env.TURSO_DATABASE_URL) {
-    return process.env.TURSO_DATABASE_URL;
-  }
+  const turso = tursoConfig();
+  if (turso) return turso.url;
   return `file:${getDatabasePath()}`;
+}
+
+export function isRemoteDatabase(): boolean {
+  return Boolean(tursoConfig());
+}
+
+/** True when visitor data survives redeploys and cold starts. */
+export function isPersistentDatabase(): boolean {
+  return isRemoteDatabase();
+}
+
+function createSqlClient(): Client {
+  const turso = tursoConfig();
+  if (turso) {
+    // HTTP driver — required for Vercel serverless + Turso.
+    return createWebClient({
+      url: turso.url,
+      authToken: turso.authToken,
+    });
+  }
+  return createClient({ url: getSqlDatabaseUrl() });
 }
 
 async function ensureSchema(client: Client): Promise<void> {
@@ -63,16 +91,9 @@ async function migrateJsonIfNeeded(client: Client): Promise<void> {
 
 export async function getSqlClient(): Promise<Client> {
   if (!globalForSql.sql) {
-    globalForSql.sql = createClient({
-      url: getSqlDatabaseUrl(),
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    });
+    globalForSql.sql = createSqlClient();
     globalForSql.sqlReady = ensureSchema(globalForSql.sql);
   }
   await globalForSql.sqlReady;
   return globalForSql.sql;
-}
-
-export function isRemoteDatabase(): boolean {
-  return Boolean(process.env.TURSO_DATABASE_URL);
 }

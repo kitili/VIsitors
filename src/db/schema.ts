@@ -24,4 +24,10 @@ CREATE TABLE IF NOT EXISTS watchlist (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_watchlist_phone ON watchlist(phone);
+
+CREATE TABLE IF NOT EXISTS photos (
+  id TEXT PRIMARY KEY,
+  data BLOB NOT NULL,
+  content_type TEXT NOT NULL DEFAULT 'image/jpeg'
+);
 `;

@@ -45,7 +45,9 @@ async function main() {
 
   const health = await req("/api/health");
   assert(health.body.ok, `Database unhealthy: ${JSON.stringify(health.body)}`);
-  console.log(`✓ Database: ${health.body.database} (${health.body.visits} visits)`);
+  console.log(
+    `✓ Database: ${health.body.database} (${health.body.visits} visits, persistent=${health.body.persistent})`,
+  );
 
   const checkInUrl = await req("/api/check-in-url");
   assert(checkInUrl.body.url?.startsWith("http"), `QR URL wrong: ${checkInUrl.body.url}`);
@@ -106,13 +108,14 @@ async function main() {
   assert(historyHtml.includes("Visitor"), "History page missing table headers");
   console.log("✓ History page loads with expected content");
 
-  if (health.body.database === "sqlite") {
-    console.log("\n⚠ Using temporary SQLite on Vercel — add Turso for persistent storage.");
-    console.log("  Run: npm run setup:turso");
-  } else {
-    console.log("\n✓ Turso remote database connected.");
+  if (!health.body.persistent) {
+    console.log("\n✗ Production storage is NOT persistent (history will reset on cold starts).");
+    console.log("  1. Accept terms: https://vercel.com/mourinekitilimourine-8096s-projects/~/integrations/accept-terms/tursocloud");
+    console.log("  2. Run: npm run provision:turso");
+    process.exit(1);
   }
 
+  console.log("\n✓ Turso remote database connected.");
   console.log("\nProduction handover test passed.");
 }
 

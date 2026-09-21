@@ -1254,6 +1254,21 @@ a:focus-visible {
   color: #7a5b00;
 }
 
+.storage-banner {
+  background: #fff1f0;
+  border-bottom: 1px solid #ffb4ab;
+  color: #8a1c13;
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.storage-banner a {
+  color: #002368;
+  font-weight: 600;
+}
+
 .visitor-row--stale {
   background: #fff8e6;
 }

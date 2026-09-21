@@ -14,6 +14,7 @@
     "tunnel": "node scripts/tunnel.mjs",
     "dev:public": "node scripts/dev-public.mjs",
     "setup:turso": "node scripts/setup-turso.mjs",
+    "provision:turso": "node scripts/provision-turso.mjs",
     "init-db": "node scripts/init-db.mjs",
     "handover:production": "node scripts/handover-production.mjs"
   },

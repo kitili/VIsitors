@@ -4,7 +4,7 @@ import { localDateKey } from "@/lib/date-key";
 import { requireVisit, SignInInput, Visit, VisitRecord } from "@/domain/Visit";
 import { VisitQuery, VisitRepository } from "@/repositories/VisitRepository";
 import { WatchlistRepository } from "@/repositories/WatchlistRepository";
-import { PhotoStorage } from "./PhotoStorage";
+import type { PhotoStore } from "./photo-storage";
 
 export type VisitStats = {
   total: number;
@@ -32,7 +32,7 @@ export type NetworkOverview = {
 export class VisitService {
   constructor(
     private readonly visits: VisitRepository,
-    private readonly photos: PhotoStorage,
+    private readonly photos: PhotoStore,
     private readonly watchlist?: WatchlistRepository,
   ) {}
 
