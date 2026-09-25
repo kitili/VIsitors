@@ -1299,9 +1299,45 @@ a:focus-visible {
 
 .badge-body {
   display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   padding: 16px;
-  align-items: center;
+  align-items: flex-start;
+}
+
+.badge-details {
+  flex: 1;
+  min-width: 140px;
+}
+
+.badge-qr-block {
+  text-align: center;
+  margin-left: auto;
+}
+
+.badge-qr {
+  display: block;
+  border-radius: 6px;
+}
+
+.badge-qr-caption {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--ink-muted);
+  max-width: 120px;
+}
+
+.badge-vehicle {
+  font-weight: 600;
+}
+
+.success-panel-inline {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.success-panel-inline h2 {
+  margin: 0 0 6px;
 }
 
 .badge-photo {

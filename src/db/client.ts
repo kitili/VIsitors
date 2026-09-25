@@ -135,8 +135,17 @@ async function ensureSchema(client: SqlClient, kind: DatabaseKind): Promise<void
   for (const sql of statements) {
     await client.execute(sql);
   }
+  await migrateVehicleRegColumn(client);
   if (kind === "sqlite") {
     await migrateJsonIfNeeded(client);
+  }
+}
+
+async function migrateVehicleRegColumn(client: SqlClient): Promise<void> {
+  try {
+    await client.execute("ALTER TABLE visits ADD COLUMN vehicle_reg TEXT");
+  } catch {
+    // Column already exists on databases created before vehicle_reg was added.
   }
 }
 
@@ -153,8 +162,8 @@ async function migrateJsonIfNeeded(client: SqlClient): Promise<void> {
     await client.execute({
       sql: `
         INSERT INTO visits (
-          id, name, phone, purpose, host, campus, date, photo, source, signed_in_at, signed_out_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, name, phone, purpose, host, campus, vehicle_reg, date, photo, source, signed_in_at, signed_out_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       args: [
         row.id,
@@ -163,6 +172,7 @@ async function migrateJsonIfNeeded(client: SqlClient): Promise<void> {
         row.purpose,
         row.host,
         row.campus === "Arusha Town" ? "Arusha Modern" : row.campus,
+        row.vehicleReg ?? null,
         row.date,
         row.photo?.startsWith("data:image/") ? null : row.photo,
         row.source,

@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       purpose: String(body.purpose ?? ""),
       host: String(body.host ?? ""),
       campus: String(body.campus ?? ""),
+      vehicleReg: body.vehicleReg != null ? String(body.vehicleReg) : null,
       photo: body.photo ?? null,
       source: body.source === "self" ? "self" : "desk",
     });

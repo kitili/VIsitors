@@ -38,6 +38,7 @@ export async function createVisit(input: {
   purpose: string;
   host: string;
   campus: string;
+  vehicleReg?: string | null;
   photo?: string | null;
   source: "desk" | "self";
 }): Promise<VisitRecord> {

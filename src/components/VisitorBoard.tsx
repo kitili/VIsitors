@@ -110,6 +110,7 @@ export function VisitorBoard({
                 <div className="name">{visit.name}</div>
                 <div className="meta">
                   {purposeLabel(visit.purpose)} · {t("board.visiting")} {visit.host}
+                  {visit.vehicleReg ? ` · ${visit.vehicleReg}` : ""}
                   {visit.source === "self" ? ` · ${t("board.selfTag")}` : ""}
                   {isStale(visit.signedInAt) ? ` · ${t("board.longStay")}` : ""}
                 </div>

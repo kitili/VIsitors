@@ -348,6 +348,7 @@ export function DashboardView({ campus }: { campus: string }) {
               <th>{t("history.colVisitor")}</th>
               <th>{t("history.colPurpose")}</th>
               <th>{t("history.colHost")}</th>
+              <th>{t("history.colVehicle")}</th>
               <th>{t("history.colSource")}</th>
               <th>{t("history.colDate")}</th>
               <th>{t("history.colSignedIn")}</th>
@@ -359,13 +360,13 @@ export function DashboardView({ campus }: { campus: string }) {
           <tbody>
             {initialLoading ? (
               <tr>
-                <td colSpan={9} className="history-empty">
+                <td colSpan={10} className="history-empty">
                   {t("history.loadingTable")}
                 </td>
               </tr>
             ) : visits.length === 0 ? (
               <tr>
-                <td colSpan={9} className="history-empty">
+                <td colSpan={10} className="history-empty">
                   {dateError ? t("history.fixDateRange") : hasExtraFilters ? t("history.noMatch") : t("history.noVisits")}
                 </td>
               </tr>
@@ -390,6 +391,7 @@ export function DashboardView({ campus }: { campus: string }) {
                   </td>
                   <td>{purposeLabel(visit.purpose)}</td>
                   <td>{visit.host}</td>
+                  <td>{visit.vehicleReg ?? "—"}</td>
                   <td className="source-chip">
                     {visit.source === "self" ? t("history.filterQr") : t("history.frontDesk")}
                   </td>

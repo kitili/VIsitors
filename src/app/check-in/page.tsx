@@ -21,6 +21,7 @@ function CheckInInner() {
   const { t } = useAppPreferences();
   const params = useSearchParams();
   const presetCampus = resolvePresetCampus(params.get("campus"));
+  const presetVehicle = params.get("vehicle")?.trim() ?? "";
   const [campus, setCampus] = useState<CampusName>(presetCampus ?? CAMPUS_NAMES[0]);
 
   return (
@@ -38,7 +39,7 @@ function CheckInInner() {
         <label>{t("checkIn.whichCampus")}</label>
         <CampusPills value={campus} onChange={setCampus} />
       </div>
-      <SignInForm campus={campus} source="self" />
+      <SignInForm campus={campus} source="self" initialVehicleReg={presetVehicle} />
     </div>
   );
 }

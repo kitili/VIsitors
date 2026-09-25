@@ -7,6 +7,7 @@ export type VisitRecord = {
   purpose: string;
   host: string;
   campus: string;
+  vehicleReg: string | null;
   date: string;
   photo: string | null;
   source: VisitSource;

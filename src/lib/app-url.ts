@@ -123,11 +123,16 @@ export function getAppBaseUrl(host?: string): string {
   return getPublicBaseUrl(host);
 }
 
-export function getCheckInUrl(host?: string, campusSlug?: string): string {
+export function getCheckInUrl(host?: string, campusSlug?: string, vehicleReg?: string | null): string {
   const base = `${getPublicBaseUrl(host)}/check-in`;
-  if (!campusSlug) return base;
-  return `${base}?campus=${encodeURIComponent(campusSlug)}`;
+  const params = new URLSearchParams();
+  if (campusSlug) params.set("campus", campusSlug);
+  const plate = vehicleReg?.trim();
+  if (plate) params.set("vehicle", plate);
+  const query = params.toString();
+  return query ? `${base}?${query}` : base;
 }
+
 
 export function isLocalHost(host?: string): boolean {
   const hostname = host?.split(":")[0];

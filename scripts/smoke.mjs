@@ -106,10 +106,12 @@ async function main() {
       host: "Front Office",
       campus: "Usa River",
       source: "desk",
+      vehicleReg: "t 456 xyz",
       photo: TINY_JPEG,
     }),
   });
   assert(deskVisit.status === 201, `Desk sign-in failed: ${JSON.stringify(deskVisit.body)}`);
+  assert(deskVisit.body.visit.vehicleReg === "T 456 XYZ", "Vehicle reg was not normalized");
   assert(deskVisit.body.visit.photo?.startsWith("/api/photos/"), "Photo was not stored as file URL");
 
   const photo = await fetch(`${BASE}${deskVisit.body.visit.photo}`);

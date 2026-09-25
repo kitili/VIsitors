@@ -13,10 +13,12 @@ import { VisitorBadge } from "./VisitorBadge";
 export function SignInForm({
   campus,
   source,
+  initialVehicleReg = "",
   onSignedIn,
 }: {
   campus: string;
   source: "desk" | "self";
+  initialVehicleReg?: string;
   onSignedIn?: (name: string) => void;
 }) {
   const { t, te, purposeLabel } = useAppPreferences();
@@ -24,11 +26,12 @@ export function SignInForm({
   const [phone, setPhone] = useState("");
   const [purpose, setPurpose] = useState("");
   const [host, setHost] = useState("");
+  const [vehicleReg, setVehicleReg] = useState(initialVehicleReg);
   const [photo, setPhoto] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [completed, setCompleted] = useState("");
+  const [selfVisit, setSelfVisit] = useState<VisitRecord | null>(null);
   const [deskVisit, setDeskVisit] = useState<VisitRecord | null>(null);
   const [watchlistHit, setWatchlistHit] = useState<WatchlistEntry | null>(null);
   const [autofillHint, setAutofillHint] = useState("");
@@ -43,6 +46,7 @@ export function SignInForm({
         if (!name) setName(visit.name);
         if (!host) setHost(visit.host);
         if (!purpose) setPurpose(visit.purpose);
+        if (!vehicleReg && visit.vehicleReg) setVehicleReg(visit.vehicleReg);
         setAutofillHint(t("signIn.returningHint"));
       }
     } catch {
@@ -67,6 +71,7 @@ export function SignInForm({
         purpose,
         host,
         campus,
+        vehicleReg: vehicleReg.trim() || null,
         photo,
         source,
       });
@@ -74,11 +79,12 @@ export function SignInForm({
       setPhone("");
       setPurpose("");
       setHost("");
+      setVehicleReg(initialVehicleReg);
       setPhoto(null);
       setAutofillHint("");
       setWatchlistHit(null);
       if (source === "self") {
-        setCompleted(visit.name);
+        setSelfVisit(visit);
       } else {
         setDeskVisit(visit);
       }
@@ -102,15 +108,15 @@ export function SignInForm({
     );
   }
 
-  if (completed && source === "self") {
+  if (selfVisit && source === "self") {
     return (
-      <div className="checkin-card card success-panel">
-        <h2>{t("signIn.successTitle")}</h2>
-        <p className="sub">{t("signIn.successSub", { name: completed })}</p>
-        <button type="button" className="primary-btn" onClick={() => setCompleted("")}>
-          {t("signIn.anotherSelf")}
-        </button>
-      </div>
+      <VisitorBadge
+        visit={selfVisit}
+        showSuccessNote
+        onDone={() => {
+          setSelfVisit(null);
+        }}
+      />
     );
   }
 
@@ -174,6 +180,16 @@ export function SignInForm({
         value={host}
         onChange={(event) => setHost(event.target.value)}
         required
+      />
+
+      <label htmlFor="fVehicle">{t("signIn.vehicleReg")}</label>
+      <input
+        id="fVehicle"
+        type="text"
+        autoComplete="off"
+        placeholder={t("signIn.vehiclePlaceholder")}
+        value={vehicleReg}
+        onChange={(event) => setVehicleReg(event.target.value)}
       />
 
       {source === "desk" ? <PhotoCapture photo={photo} onCapture={setPhoto} /> : null}

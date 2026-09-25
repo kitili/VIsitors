@@ -11,6 +11,7 @@ type VisitRow = {
   purpose: string;
   host: string;
   campus: string;
+  vehicle_reg?: string | null;
   date: string;
   photo: string | null;
   source: "desk" | "self";
@@ -99,9 +100,9 @@ export class LibsqlVisitRepository implements VisitRepository {
       args.push(PhoneNumber.digitsOnly(filters.phone));
     }
     if (filters.search) {
-      clauses.push("(name LIKE ? OR phone LIKE ? OR host LIKE ?)");
+      clauses.push("(name LIKE ? OR phone LIKE ? OR host LIKE ? OR vehicle_reg LIKE ?)");
       const term = `%${filters.search.trim()}%`;
-      args.push(term, term, term);
+      args.push(term, term, term, term);
     }
 
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
@@ -127,14 +128,15 @@ export class LibsqlVisitRepository implements VisitRepository {
     await (await this.client()).execute({
       sql: `
         INSERT INTO visits (
-          id, name, phone, purpose, host, campus, date, photo, source, signed_in_at, signed_out_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, name, phone, purpose, host, campus, vehicle_reg, date, photo, source, signed_in_at, signed_out_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           name = excluded.name,
           phone = excluded.phone,
           purpose = excluded.purpose,
           host = excluded.host,
           campus = excluded.campus,
+          vehicle_reg = excluded.vehicle_reg,
           date = excluded.date,
           photo = excluded.photo,
           source = excluded.source,
@@ -148,6 +150,7 @@ export class LibsqlVisitRepository implements VisitRepository {
         record.purpose,
         record.host,
         record.campus,
+        record.vehicleReg,
         record.date,
         record.photo,
         record.source,
@@ -165,6 +168,7 @@ export class LibsqlVisitRepository implements VisitRepository {
       purpose: row.purpose,
       host: row.host,
       campus: row.campus,
+      vehicleReg: row.vehicle_reg ?? null,
       date: row.date,
       photo: row.photo,
       source: row.source,

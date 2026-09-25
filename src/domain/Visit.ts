@@ -5,6 +5,7 @@ import { NotFoundError, ValidationError } from "./errors";
 import { PhoneNumber } from "./PhoneNumber";
 import type { VisitRecord, VisitSource } from "./types";
 import { VisitPurpose } from "./VisitPurpose";
+import { normalizeVehicleReg } from "./vehicleReg";
 
 export type { VisitRecord, VisitSource } from "./types";
 
@@ -14,6 +15,7 @@ export type SignInInput = {
   purpose: string;
   host: string;
   campus: string;
+  vehicleReg?: string | null;
   photo?: string | null;
   source?: VisitSource;
   signedInAt?: Date;
@@ -27,6 +29,7 @@ export class Visit {
     readonly purpose: VisitPurpose,
     readonly host: string,
     readonly campus: Campus,
+    readonly vehicleReg: string | null,
     readonly date: string,
     readonly photo: string | null,
     readonly source: VisitSource,
@@ -63,6 +66,7 @@ export class Visit {
       VisitPurpose.parse(input.purpose),
       host,
       Campus.parse(input.campus),
+      normalizeVehicleReg(input.vehicleReg),
       Visit.todayKey(signedInAt),
       photo,
       source,
@@ -79,6 +83,7 @@ export class Visit {
       VisitPurpose.parse(record.purpose),
       record.host,
       Campus.parse(record.campus),
+      record.vehicleReg ?? null,
       record.date,
       record.photo,
       record.source === "self" ? "self" : "desk",
@@ -108,6 +113,7 @@ export class Visit {
       this.purpose,
       this.host,
       this.campus,
+      this.vehicleReg,
       this.date,
       photoPath,
       this.source,
@@ -127,6 +133,7 @@ export class Visit {
       this.purpose,
       this.host,
       this.campus,
+      this.vehicleReg,
       this.date,
       this.photo,
       this.source,
@@ -143,6 +150,7 @@ export class Visit {
       purpose: this.purpose.toString(),
       host: this.host,
       campus: this.campus.toString(),
+      vehicleReg: this.vehicleReg,
       date: this.date,
       photo: this.photo,
       source: this.source,
